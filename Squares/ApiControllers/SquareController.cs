@@ -44,6 +44,11 @@ namespace Squares.ApiControllers
         {
         }
 
+        public void Rename(UserSquareViewModel model)
+        {
+            _service.RenameSquare(User.Identity.GetUserId(), model);
+
+        }
         public void ResetTimer(Guid id)
         {
             _service.ResetTimer(User.Identity.GetUserId(), id);

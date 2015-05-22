@@ -65,6 +65,9 @@ var Square = function (options) {
             result.canReset(result.activityState() > 1);
             $.event.trigger({ type: 'squareClicked', args: result, time: new Date() });
         },
+        onRenameClick: function() {
+            $.event.trigger({ type: 'renameClicked', args: result, time: new Date() });
+        },
         onTick: function () {
 
             result.elapsed(result.timer.lap());

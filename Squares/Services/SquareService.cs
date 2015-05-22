@@ -150,6 +150,16 @@ namespace Squares.Services
                 _context.SaveChanges();
             }
         }
+
+        public void RenameSquare(string userId, UserSquareViewModel model)
+        {
+            var target = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.Id);
+            if (target != null && target.DisplayName != model.Name &!String.IsNullOrWhiteSpace(model.Name))
+            {
+                target.DisplayName = model.Name.Trim();
+                _context.SaveChanges();
+            }
+        }
     }
 
 
