@@ -14,6 +14,8 @@
           <Property Name="DisplayName" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="DisplayOrder" Type="int" Nullable="false" />
           <Property Name="CreratedOnUtc" Type="datetime" Nullable="false" />
+          <Property Name="RunningTime" Type="bigint" Nullable="false" />
+          <Property Name="ActivityState" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="UserSquareActivity">
           <Key>
@@ -61,6 +63,8 @@
           <Property Name="DisplayOrder" Type="Int32" Nullable="false" />
           <Property Name="CreratedOnUtc" Type="DateTime" Nullable="false" Precision="3" />
           <NavigationProperty Name="UserSquareActivities" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquare" ToRole="UserSquareActivity" />
+          <Property Name="RunningTime" Type="Int64" Nullable="false" />
+          <Property Name="ActivityState" Type="Int32" Nullable="false" />
         </EntityType>
         <EntityContainer Name="SquaresEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="UserSquares" EntityType="Self.UserSquare" />
@@ -104,6 +108,8 @@
           <EntitySetMapping Name="UserSquares">
             <EntityTypeMapping TypeName="SquaresModel.UserSquare">
               <MappingFragment StoreEntitySet="UserSquare">
+                <ScalarProperty Name="ActivityState" ColumnName="ActivityState" />
+                <ScalarProperty Name="RunningTime" ColumnName="RunningTime" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />

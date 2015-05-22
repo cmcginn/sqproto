@@ -26,7 +26,9 @@ namespace Squares.Services
                     CreratedOnUtc = System.DateTime.UtcNow,
                     DisplayOrder = i,
                     DisplayName = String.Format("Square {0}", i + 1),
-                    Id = Guid.NewGuid()
+                    Id = Guid.NewGuid(),
+                    RunningTime = 0,
+                    ActivityState = (int)ActivityStateTypes.None
                 });
             }
             return result;
@@ -40,81 +42,78 @@ namespace Squares.Services
                 userSquares = CreateDefaultUserSquares(userId);
                 _context.UserSquares.AddRange(userSquares);
                 _context.SaveChanges();
+                userSquares = _context.UserSquares.Where(x => x.UserId == userId).ToList();
 
             }
-            userSquares.OrderBy(x=>x.DisplayOrder).ToList().ForEach(us =>
-            {
-                
-                var userSquareModel = new UserSquareViewModel
+            
+                userSquares.OrderBy(x => x.DisplayOrder).ToList().ForEach(us =>
                 {
-                    Id = us.Id,
-                    Name = us.DisplayName
-                };
-                if (us.UserSquareActivities.Any())
-                {
-                    var running =
-                        us.UserSquareActivities.SingleOrDefault(x => x.ActivityState == (int) ActivityStateTypes.Started);
-                    if (running != null)
+
+                    var userSquareModel = new UserSquareViewModel
                     {
-                        
-                        var lastRunning = us.UserSquareActivities.Where(x => x.ActivityState != (int) ActivityStateTypes.Started)
-                            .OrderBy(x => x.StartUtc)
-                            .ToList()
-                            .LastOrDefault();
-                        if (lastRunning != null)
+                        Id = us.Id,
+                        Name = us.DisplayName,
+                        ActivityState = (ActivityStateTypes) us.ActivityState
+                    };
+                    if (us.UserSquareActivities.Any())
+                    {
+                        var lastActivity = us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().Last();
+                        if (lastActivity != null && lastActivity.ActivityState == (int)ActivityStateTypes.Started)
                         {
-                            if (lastRunning.ActivityState == (int) ActivityStateTypes.Stopped)
-                                userSquareModel.Elapsed = 0;
-                            else
-                            {
-                                userSquareModel.Elapsed =
-                                    (long) (System.DateTime.UtcNow - running.StartUtc).TotalMilliseconds +
-                                    running.ElapsedMilliseconds;
-                                userSquareModel.ActivityState = ActivityStateTypes.Started;
-                            }
+                            lastActivity.ElapsedMilliseconds =
+                                (long)(System.DateTime.UtcNow - lastActivity.StartUtc).TotalMilliseconds;
+                            us.RunningTime += lastActivity.ElapsedMilliseconds;
+                            _context.SaveChanges();
                         }
                     }
-                    else
-                    {
-                        userSquareModel.Elapsed =
-                            us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().Last().ElapsedMilliseconds;
-                    }
-
-                }
-                result.UserSquares.Add(userSquareModel);
-            });
+                    userSquareModel.RunningTime = us.RunningTime;
+                    result.UserSquares.Add(userSquareModel);
+                });
+           
             return result;
         }
 
         public void SaveUserSquaresViewModel(UserSquaresViewModel model)
         {
-            var userSquareActivities =
-                _context.UserSquares.Where(x => x.UserId == model.UserId).SelectMany(x => x.UserSquareActivities).ToList();
-            //stop all running
-            userSquareActivities.Where(x => x.ActivityState == (int)ActivityStateTypes.Started).ToList().ForEach(usa =>
+            var now = System.DateTime.UtcNow;
+            //pause everything started
+            var userSquares = _context.UserSquares.Where(x => x.UserId == model.UserId).ToList();
+            userSquares.ForEach(us =>
             {
-                var m = model.UserSquares.Single(x => x.Id == usa.UserSquareId);
-                usa.ElapsedMilliseconds = m.Elapsed;
-                usa.ActivityState = (int) ActivityStateTypes.Paused;
+                var lastActivity = us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().LastOrDefault();
+                var squareModel = model.UserSquares.Single(x => x.Id == us.Id);
+                if (lastActivity != null)
+                {
+                    //pause all started
+                    if (lastActivity.ActivityState == (int) ActivityStateTypes.Started)
+                    {
+                        lastActivity.ActivityState = (int) ActivityStateTypes.Paused;
+                        lastActivity.ElapsedMilliseconds = squareModel.Elapsed;
+                        us.RunningTime += squareModel.Elapsed;
+                        us.ActivityState = lastActivity.ActivityState;
+                    }
+                }
+
             });
 
             var started = model.UserSquares.SingleOrDefault(x => x.ActivityState == ActivityStateTypes.Started);
-            if(started != null)
+            if (started != null)
             {
-                //new entry for started
                 var startedActivity = new UserSquareActivity
                 {
                     Id = Guid.NewGuid(),
                     StartUtc = DateTime.Parse("1/1/1970").Date.AddMilliseconds(started.StartDate.GetValueOrDefault()),
                     UserSquareId = started.Id,
-                    ElapsedMilliseconds=0,
+                    ElapsedMilliseconds = 0,
                     ActivityState = (int)ActivityStateTypes.Started
                 };
-               
-                _context.UserSquareActivities.Add(startedActivity);
+                var us = _context.UserSquares.Single(x => x.Id == started.Id);
+                us.ActivityState = startedActivity.ActivityState;
+                us.UserSquareActivities.Add(startedActivity);
+               // _context.UserSquareActivities.Add(startedActivity);
             }
-
             _context.SaveChanges();
+
 
 
         }
@@ -139,15 +138,10 @@ namespace Squares.Services
             var target = _context.UserSquares.Where(x => x.UserId == userId && x.Id == id).SingleOrDefault();
             if (target != null)
             {
-                var usa = new UserSquareActivity
-                {
-                    ActivityState = (int) ActivityStateTypes.Stopped,
-                    ElapsedMilliseconds = 0,
-                    Id = Guid.NewGuid(),
-                    StartUtc = System.DateTime.UtcNow,
-                    UserSquareId = target.Id
-                };
-                _context.UserSquareActivities.Add(usa);
+                var lastActivity =
+                    target.UserSquareActivities.OrderBy(x => x.StartUtc).Last().ActivityState =
+                        (int) ActivityStateTypes.Stopped;
+                target.RunningTime = 0;
                 _context.SaveChanges();
             }
         }

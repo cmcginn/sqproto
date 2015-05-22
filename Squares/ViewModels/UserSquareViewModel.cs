@@ -19,6 +19,7 @@ namespace Squares.ViewModels
         public Guid Id { get; set; }
         public ActivityStateTypes ActivityState { get; set; }
         public long? StartDate { get; set; }
+        public long RunningTime { get; set; }
 
 
     }

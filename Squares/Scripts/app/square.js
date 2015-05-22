@@ -33,7 +33,8 @@ var Square = function (options) {
         id: ko.observable(settings.Id),
         elapsed: ko.observable(settings.Elapsed),
         started: ko.observable(settings.Elapsed),
-        startDate:ko.observable(settings.StartDate),
+        startDate: ko.observable(settings.StartDate),
+        runningTime:ko.observable(settings.RunningTime),
         timer:null,
         activityState: ko.observable(settings.ActivityState),
         name:ko.observable(settings.Name),
@@ -63,8 +64,8 @@ var Square = function (options) {
         },
         onTick: function () {
 
-            result.elapsed(result.started() + result.timer.lap());
-            result.value = setTime(result.elapsed());
+            result.elapsed(result.timer.lap());
+            result.value = setTime(result.runningTime() + result.elapsed());
             result.getDisplayValue();
          
 
@@ -75,7 +76,7 @@ var Square = function (options) {
             result.displayValue(r);
         },
         init: function () {
-            result.value = setTime(result.elapsed());
+            result.value = setTime(result.runningTime());
             result.getDisplayValue();
             result.timer = new Tock({ interval: 100, callback: result.onTick });
    
@@ -96,6 +97,8 @@ var Square = function (options) {
             result.timer.stop();
             result.elapsed(0);
             result.value = setTime(result.elapsed());
+            result.activityState(0);
+            result.runningTime(0);
             result.getDisplayValue();
 
         },
