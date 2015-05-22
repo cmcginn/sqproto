@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Squares.ViewModels;
+using WebGrease.Css.Extensions;
 
 
 namespace Squares.Services
@@ -28,7 +29,9 @@ namespace Squares.Services
                     DisplayName = String.Format("Square {0}", i + 1),
                     Id = Guid.NewGuid(),
                     RunningTime = 0,
-                    ActivityState = (int)ActivityStateTypes.None
+                    ActivityState = (int)ActivityStateTypes.None,
+                    Hidden=false
+                    
                 });
             }
             return result;
@@ -36,7 +39,7 @@ namespace Squares.Services
         public UserSquaresViewModel GetUserSquaresViewModelByUserId(string userId)
         {
             var result = new UserSquaresViewModel { UserSquares = new List<UserSquareViewModel>() };
-            var userSquares = _context.UserSquares.Where(x => x.UserId == userId).ToList();
+            var userSquares = _context.UserSquares.Where(x => x.UserId == userId &! x.Hidden).ToList();
             if (!userSquares.Any())
             {
                 userSquares = CreateDefaultUserSquares(userId);
@@ -53,7 +56,8 @@ namespace Squares.Services
                     {
                         Id = us.Id,
                         Name = us.DisplayName,
-                        ActivityState = (ActivityStateTypes) us.ActivityState
+                        ActivityState = (ActivityStateTypes) us.ActivityState,
+                        Visible = !us.Hidden
                     };
                     if (us.UserSquareActivities.Any())
                     {
@@ -80,7 +84,7 @@ namespace Squares.Services
         {
             var now = System.DateTime.UtcNow;
             //pause everything started
-            var userSquares = _context.UserSquares.Where(x => x.UserId == model.UserId).ToList();
+            var userSquares = _context.UserSquares.Where(x => x.UserId == model.UserId &! x.Hidden).ToList();
             userSquares.ForEach(us =>
             {
                 var lastActivity = us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().LastOrDefault();
@@ -159,6 +163,45 @@ namespace Squares.Services
                 target.DisplayName = model.Name.Trim();
                 _context.SaveChanges();
             }
+        }
+
+        public UserSquareViewModel AddNewUserSquare(string userId)
+        {
+            var displayOrder = _context.UserSquares.Max(x => x.DisplayOrder);
+            var userSquare = new UserSquare
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ActivityState = (int) ActivityStateTypes.None,
+                CreratedOnUtc = System.DateTime.UtcNow,
+                DisplayOrder = displayOrder += 1,
+                RunningTime = 0,
+                DisplayName = "New Square",
+                Hidden=false
+            };
+            _context.UserSquares.Add(userSquare);
+            _context.SaveChanges();
+            var result = new UserSquareViewModel
+            {
+                ActivityState = ActivityStateTypes.None,
+                Elapsed = 0,
+                Id = userSquare.Id,
+                Name = userSquare.DisplayName,
+                RunningTime = userSquare.RunningTime,
+                Visible=!userSquare.Hidden
+            };
+            return result;
+        }
+
+        public void HideUserSquare(string userId, Guid id)
+        {
+            var target = _context.UserSquares.SingleOrDefault(x => x.UserId == userId && x.Id == id);
+            if (target != null && target.ActivityState != (int) ActivityStateTypes.Started)
+            {
+                target.Hidden = true;
+                _context.SaveChanges();
+            }
+                
         }
     }
 

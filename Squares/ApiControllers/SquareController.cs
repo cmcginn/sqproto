@@ -21,9 +21,10 @@ namespace Squares.ApiControllers
         }
 
         // GET: api/Square/5
-        public string Get(int id)
+        public UserSquareViewModel Get(int id)
         {
-            return "value";
+            var model = _service.AddNewUserSquare(User.Identity.GetUserId());
+            return model;
         }
 
          //POST: api/Square
@@ -44,15 +45,7 @@ namespace Squares.ApiControllers
         {
         }
 
-        public void Rename(UserSquareViewModel model)
-        {
-            _service.RenameSquare(User.Identity.GetUserId(), model);
 
-        }
-        public void ResetTimer(Guid id)
-        {
-            _service.ResetTimer(User.Identity.GetUserId(), id);
-        }
-
+    
     }
 }

@@ -1,6 +1,6 @@
 ﻿<div style="margin:auto">
     <div data-bind="foreach:UserSquares" class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-3" data-bind="visible:visible">
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div class="col-sm-12 text-center">
@@ -9,12 +9,7 @@
                             <div class="input-group-addon">
                                 <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
                             </div>
- 
-
                         </div>
-
-
-
                     </div>
                     <div class="col-sm-12 text-center">
                         <div class="btn btn-default btn-lg" data-bind="text:displayValue,click:onSquareClick"></div>
@@ -22,14 +17,19 @@
                     <div class="col-sm-12 text-center" data-bind="visible:canReset">
                         <div class="btn btn-sm btn-default" data-bind="click:onResetClick">Reset</div>
                     </div>
+                    <div class="col-sm-12 text-center" data-bind="visible:canHide">
+                        <div class="btn btn-sm btn-default" data-bind="click:onHideClick">Hide</div>
+                    </div>
                 </div>
             </div>
-
-
         </div>
 
     </div>
-
+    <div class="row">
+        <div class="col-sm-12">
+            <button id="addNew">Add</button>
+        </div>
+    </div>
 
     @section scripts{
     </div>
@@ -56,7 +56,7 @@
         }
 
         function resetSquare(e) {
-            $.post(rootPath + 'api/Square/ResetTimer/' + e.args.id(), function (r, s) {
+            $.post(rootPath + 'Home/ResetTimer/' + e.args.id(), function (r, s) {
 
                 e.args.stopTimer();
             });
@@ -65,8 +65,22 @@
         function renameSquare(e) {
 
             var data = e.args.toData();
-            $.post(rootPath + 'api/Square/Rename', data, function(r, s) {
+            $.post(rootPath + 'Home/Rename', data, function(r, s) {
 
+            });
+        }
+
+        function addSquare() {
+
+            $.get(rootPath + 'api/Square/0', function(r, s) {
+                var square = new Square(r);
+                viewModel.UserSquares.push(square);
+            });
+
+        }
+        function hideSquare(e) {
+            $.post(rootPath + 'Home/HideUserSquare/' +e.args.id() , function (r, s) {
+                e.args.visible(false);
             });
         }
         $(function () {
@@ -83,22 +97,12 @@
                 }
                 viewModel = ko.mapping.fromJS(vm);
                 ko.applyBindings(viewModel);
-                //for (var i = 0; i < r.UserSquares.length; i++) {
-                //    var squareSettings = {
-                //        square:{
-                //            elapsed: r.UserSquares[i].Elapsed,
-                //            name: r.UserSquares[i].Name,
-                //            id: r.UserSquares[i].Id
-                //        }
-                //    };
-                //    var square = new Square(squareSettings);
-                //    vm.userSquares.push(square);
-                //}
-                //viewModel = ko.mapping.fromJS(vm);
-                //
+ 
                 $(document).on('squareClicked', stopSquares)
                     .on('resetClicked', resetSquare)
-                    .on('renameClicked', renameSquare);
+                    .on('renameClicked', renameSquare)
+                    .on('hideClicked',hideSquare)
+                    .on('click','#addNew',addSquare);
             });
 
         });

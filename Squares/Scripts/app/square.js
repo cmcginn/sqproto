@@ -34,13 +34,18 @@ var Square = function (options) {
         elapsed: ko.observable(settings.Elapsed),
         started: ko.observable(settings.Elapsed),
         startDate: ko.observable(settings.StartDate),
-        runningTime:ko.observable(settings.RunningTime),
-        timer:null,
+        runningTime: ko.observable(settings.RunningTime),
+        timer: null,
         activityState: ko.observable(settings.ActivityState),
-        name:ko.observable(settings.Name),
+        name: ko.observable(settings.Name),
         value: null,
         displayValue: ko.observable(null),
-        canReset:ko.observable(false),
+        canReset: ko.observable(false),
+        canHide: ko.observable(false),
+        visible: ko.observable(settings.Visible),
+        onHideClick: function() {
+            $.event.trigger({ type: 'hideClicked', args: result, time: new Date() });
+        },
         onResetClick:function() {
             $.event.trigger({ type: 'resetClicked', args: result, time: new Date() });
         },
@@ -63,6 +68,7 @@ var Square = function (options) {
             }
             //can reset if started or paused
             result.canReset(result.activityState() > 1);
+            result.canHide(result.activityState() != 1);
             $.event.trigger({ type: 'squareClicked', args: result, time: new Date() });
         },
         onRenameClick: function() {
@@ -86,6 +92,7 @@ var Square = function (options) {
             result.getDisplayValue();
             result.timer = new Tock({ interval: 100, callback: result.onTick });
             result.canReset(result.activityState() > 1);
+            result.canHide(result.activityState() != 1);
         },
         startTimer:function() {
             result.timer.start();

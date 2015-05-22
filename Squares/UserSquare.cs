@@ -26,6 +26,7 @@ namespace Squares
         public System.DateTime CreratedOnUtc { get; set; }
         public long RunningTime { get; set; }
         public int ActivityState { get; set; }
+        public bool Hidden { get; set; }
     
         public virtual ICollection<UserSquareActivity> UserSquareActivities { get; set; }
     }

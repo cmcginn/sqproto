@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 using Squares.Services;
+using Squares.ViewModels;
 
 namespace Squares.Controllers
 {
@@ -40,6 +42,23 @@ namespace Squares.Controllers
         {
             var model = _service.GetUserSquareViewModelById(userSquareId);
             return PartialView("UserSquareEdit", model);
+        }
+        [HttpPost]
+        public void Rename(UserSquareViewModel model)
+        {
+            _service.RenameSquare(User.Identity.GetUserId(), model);
+
+        }
+        [HttpPost]
+        public void ResetTimer(Guid id)
+        {
+            _service.ResetTimer(User.Identity.GetUserId(), id);
+        }
+
+        [HttpPost]
+        public void HideUserSquare(Guid id)
+        {
+            _service.HideUserSquare(User.Identity.GetUserId(), id);
         }
     }
 }
