@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="SquaresModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="UserSquare">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="DisplayName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="DisplayOrder" Type="int" Nullable="false" />
+          <Property Name="CreratedOnUtc" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="UserSquareActivity">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="UserSquareId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="StartUtc" Type="datetime" Nullable="false" />
+          <Property Name="ElapsedMilliseconds" Type="bigint" Nullable="false" />
+          <Property Name="ActivityState" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_UserSquareActivity_UserSquare">
+          <End Role="UserSquare" Type="Self.UserSquare" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="UserSquareActivity" Type="Self.UserSquareActivity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserSquare">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserSquareActivity">
+              <PropertyRef Name="UserSquareId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="SquaresModelStoreContainer">
+          <EntitySet Name="UserSquare" EntityType="Self.UserSquare" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserSquareActivity" EntityType="Self.UserSquareActivity" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_UserSquareActivity_UserSquare" Association="Self.FK_UserSquareActivity_UserSquare">
+            <End Role="UserSquare" EntitySet="UserSquare" />
+            <End Role="UserSquareActivity" EntitySet="UserSquareActivity" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="SquaresModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="UserSquare">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UserId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="DisplayName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="DisplayOrder" Type="Int32" Nullable="false" />
+          <Property Name="CreratedOnUtc" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="UserSquareActivities" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquare" ToRole="UserSquareActivity" />
+        </EntityType>
+        <EntityContainer Name="SquaresEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="UserSquares" EntityType="Self.UserSquare" />
+          <EntitySet Name="UserSquareActivities" EntityType="SquaresModel.UserSquareActivity" />
+          <AssociationSet Name="FK_UserSquareActivity_UserSquare" Association="SquaresModel.FK_UserSquareActivity_UserSquare">
+            <End Role="UserSquare" EntitySet="UserSquares" />
+            <End Role="UserSquareActivity" EntitySet="UserSquareActivities" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="UserSquareActivity">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UserSquareId" Type="Guid" Nullable="false" />
+          <Property Name="StartUtc" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ElapsedMilliseconds" Type="Int64" Nullable="false" />
+          <Property Name="ActivityState" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="UserSquare" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquareActivity" ToRole="UserSquare" />
+        </EntityType>
+        <Association Name="FK_UserSquareActivity_UserSquare">
+          <End Type="SquaresModel.UserSquare" Role="UserSquare" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="SquaresModel.UserSquareActivity" Role="UserSquareActivity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserSquare">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserSquareActivity">
+              <PropertyRef Name="UserSquareId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="SquaresModelStoreContainer" CdmEntityContainer="SquaresEntities">
+          <EntitySetMapping Name="UserSquares">
+            <EntityTypeMapping TypeName="SquaresModel.UserSquare">
+              <MappingFragment StoreEntitySet="UserSquare">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
+                <ScalarProperty Name="DisplayOrder" ColumnName="DisplayOrder" />
+                <ScalarProperty Name="CreratedOnUtc" ColumnName="CreratedOnUtc" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserSquareActivities">
+            <EntityTypeMapping TypeName="SquaresModel.UserSquareActivity">
+              <MappingFragment StoreEntitySet="UserSquareActivity">
+                <ScalarProperty Name="ActivityState" ColumnName="ActivityState" />
+                <ScalarProperty Name="ElapsedMilliseconds" ColumnName="ElapsedMilliseconds" />
+                <ScalarProperty Name="StartUtc" ColumnName="StartUtc" />
+                <ScalarProperty Name="UserSquareId" ColumnName="UserSquareId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

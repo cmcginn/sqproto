@@ -1,0 +1,79 @@
+﻿<div style="margin:auto">
+    <div data-bind="foreach:UserSquares" class="row">
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="col-sm-12 text-center">
+                        <h3 data-bind="text:name"></h3>
+                    </div>
+                    <div class="col-sm-12 text-center">
+                        <div class="btn btn-default btn-lg" data-bind="text:displayValue,click:onSquareClick"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+    @section scripts{
+    </div>
+
+    <script src="~/Scripts/vendor/tock.js"></script>
+    @*<script src="~/Scripts/app/model.js"></script>*@
+    <script src="~/Scripts/app/square.js"></script>
+    <script>
+        var viewModel = {};
+        function stopSquares(e) {
+            var data = { UserSquares: [] };
+            for (var i = 0; i < viewModel.UserSquares().length; i++) {
+                
+                if (viewModel.UserSquares()[i].id() != e.args.id()) {
+                    viewModel.UserSquares()[i].pauseTimer();
+                }
+                data.UserSquares.push(viewModel.UserSquares()[i].toData());
+            }
+            
+            
+            $.post(rootPath + 'api/Square', data, function(r, s) {
+                
+            });
+        }
+
+
+        
+  
+        $(function () {
+            
+            $.get(rootPath + 'api/Square', function (r, s) {
+
+                for (var i = 0; i < r.UserSquares.length; i++) {
+                    var vm = r;
+                    r.UserSquares[i] = new Square(r.UserSquares[i]);
+                    console.log(r.UserSquares[i].activityState());
+                    if (r.UserSquares[i].activityState() == 1) {
+                        r.UserSquares[i].resumeTimer();
+                    }
+                }
+                viewModel = ko.mapping.fromJS(vm);
+                ko.applyBindings(viewModel);
+                //for (var i = 0; i < r.UserSquares.length; i++) {
+                //    var squareSettings = {
+                //        square:{
+                //            elapsed: r.UserSquares[i].Elapsed,
+                //            name: r.UserSquares[i].Name,
+                //            id: r.UserSquares[i].Id
+                //        }
+                //    };
+                //    var square = new Square(squareSettings);
+                //    vm.userSquares.push(square);
+                //}
+                //viewModel = ko.mapping.fromJS(vm);
+                //
+                $(document).on('squareClicked', stopSquares);
+            });
+
+        });
+
+    </script>
+    }
