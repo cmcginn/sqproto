@@ -40,6 +40,7 @@ var Square = function (options) {
         name:ko.observable(settings.Name),
         value: null,
         displayValue: ko.observable(null),
+        canReset:ko.observable(false),
         onResetClick:function() {
             $.event.trigger({ type: 'resetClicked', args: result, time: new Date() });
         },
@@ -60,6 +61,8 @@ var Square = function (options) {
                 default:
                     break;
             }
+            //can reset if started or paused
+            result.canReset(result.activityState() > 1);
             $.event.trigger({ type: 'squareClicked', args: result, time: new Date() });
         },
         onTick: function () {
@@ -79,7 +82,7 @@ var Square = function (options) {
             result.value = setTime(result.runningTime());
             result.getDisplayValue();
             result.timer = new Tock({ interval: 100, callback: result.onTick });
-   
+            result.canReset(result.activityState() > 1);
         },
         startTimer:function() {
             result.timer.start();

@@ -66,6 +66,9 @@ namespace Squares.Services
                             _context.SaveChanges();
                         }
                     }
+                    //allow reset activity to be restarted but keep state if it is not
+                    if (us.ActivityState == (int) ActivityStateTypes.Stopped)
+                        userSquareModel.ActivityState = ActivityStateTypes.None;
                     userSquareModel.RunningTime = us.RunningTime;
                     result.UserSquares.Add(userSquareModel);
                 });
@@ -139,8 +142,10 @@ namespace Squares.Services
             if (target != null)
             {
                 var lastActivity =
-                    target.UserSquareActivities.OrderBy(x => x.StartUtc).Last().ActivityState =
-                        (int) ActivityStateTypes.Stopped;
+                    target.UserSquareActivities.OrderBy(x => x.StartUtc).Last();
+                lastActivity.ActivityState =
+                        (int)ActivityStateTypes.Stopped;
+                target.ActivityState = lastActivity.ActivityState;
                 target.RunningTime = 0;
                 _context.SaveChanges();
             }
