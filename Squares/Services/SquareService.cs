@@ -61,11 +61,18 @@ namespace Squares.Services
                             .OrderBy(x => x.StartUtc)
                             .ToList()
                             .LastOrDefault();
-                        long lastRunningTime = lastRunning != null ? lastRunning.ElapsedMilliseconds : 0;
-
-                        userSquareModel.Elapsed = (long) (System.DateTime.UtcNow - running.StartUtc).TotalMilliseconds +
-                                                  lastRunningTime;
-                        userSquareModel.ActivityState = ActivityStateTypes.Started;
+                        if (lastRunning != null)
+                        {
+                            if (lastRunning.ActivityState == (int) ActivityStateTypes.Stopped)
+                                userSquareModel.Elapsed = 0;
+                            else
+                            {
+                                userSquareModel.Elapsed =
+                                    (long) (System.DateTime.UtcNow - running.StartUtc).TotalMilliseconds +
+                                    running.ElapsedMilliseconds;
+                                userSquareModel.ActivityState = ActivityStateTypes.Started;
+                            }
+                        }
                     }
                     else
                     {
@@ -110,6 +117,39 @@ namespace Squares.Services
             _context.SaveChanges();
 
 
+        }
+
+        public UserSquareViewModel GetUserSquareViewModelById(Guid id)
+        {
+            UserSquareViewModel result = null;
+            var src = _context.UserSquares.SingleOrDefault(x => x.Id == id);
+            if (src != null)
+            {
+                result = new UserSquareViewModel
+                {
+                    Id=src.Id,
+                    Name = src.DisplayName
+                };
+            }
+            return result;
+        }
+
+        public void ResetTimer(string userId, Guid id)
+        {
+            var target = _context.UserSquares.Where(x => x.UserId == userId && x.Id == id).SingleOrDefault();
+            if (target != null)
+            {
+                var usa = new UserSquareActivity
+                {
+                    ActivityState = (int) ActivityStateTypes.Stopped,
+                    ElapsedMilliseconds = 0,
+                    Id = Guid.NewGuid(),
+                    StartUtc = System.DateTime.UtcNow,
+                    UserSquareId = target.Id
+                };
+                _context.UserSquareActivities.Add(usa);
+                _context.SaveChanges();
+            }
         }
     }
 

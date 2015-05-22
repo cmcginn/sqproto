@@ -39,6 +39,9 @@ var Square = function (options) {
         name:ko.observable(settings.Name),
         value: null,
         displayValue: ko.observable(null),
+        onResetClick:function() {
+            $.event.trigger({ type: 'resetClicked', args: result, time: new Date() });
+        },
         onSquareClick: function () {
 
             switch (result.activityState()) {
@@ -88,6 +91,13 @@ var Square = function (options) {
         resumeTimer:function() {
             result.timer.start(result.timer.lap());
             result.activityState(1);
+        },
+        stopTimer: function() {
+            result.timer.stop();
+            result.elapsed(0);
+            result.value = setTime(result.elapsed());
+            result.getDisplayValue();
+
         },
         toData: function() {
             return{

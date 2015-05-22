@@ -44,11 +44,10 @@ namespace Squares.ApiControllers
         {
         }
 
-        //public UserSquareActivityViewModel UpdateUserSquareActivity(UserSquareActivityViewModel model)
-        //{
-        //    _service.UpdateActivity(model);
-        //    return model;
+        public void ResetTimer(Guid id)
+        {
+            _service.ResetTimer(User.Identity.GetUserId(), id);
+        }
 
-        //}
     }
 }

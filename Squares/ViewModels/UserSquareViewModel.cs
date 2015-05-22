@@ -9,7 +9,8 @@ namespace Squares.ViewModels
     {
         None=0,
         Started=1,
-        Paused=2
+        Paused=2,
+        Stopped=3
     }
     public class UserSquareViewModel
     {

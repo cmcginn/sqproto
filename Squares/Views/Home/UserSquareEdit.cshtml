@@ -1,0 +1,21 @@
+﻿@model Squares.ViewModels.UserSquareViewModel
+<form method="POST" id="UserSquareEdit" class="form-horizontal" role="form">
+    @Html.HiddenFor(m=>m.Id)
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="form-group">
+                <div class="col-xs-4">
+                    @Html.LabelFor(m=>m.Name)
+                </div>
+                <div class="col-sm-8">
+                    @Html.TextAreaFor(m => m.Name, new { @class="form-control"})
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <button class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

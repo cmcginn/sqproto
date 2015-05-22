@@ -9,6 +9,9 @@
                     <div class="col-sm-12 text-center">
                         <div class="btn btn-default btn-lg" data-bind="text:displayValue,click:onSquareClick"></div>
                     </div>
+                    <div class="col-sm-12 text-center">
+                        <div class="btn btn-sm btn-default" data-bind="click:onResetClick">Reset</div>
+                    </div>
                 </div>
             </div>
 
@@ -16,6 +19,8 @@
         </div>
 
     </div>
+    
+
     @section scripts{
     </div>
 
@@ -40,7 +45,12 @@
             });
         }
 
+        function resetSquare(e) {
+            $.post(rootPath + 'api/Square/ResetTimer/'+e.args.id(), function(r, s) {
 
+                e.args.stopTimer();
+            });
+        }
         
   
         $(function () {
@@ -70,7 +80,8 @@
                 //}
                 //viewModel = ko.mapping.fromJS(vm);
                 //
-                $(document).on('squareClicked', stopSquares);
+                $(document).on('squareClicked', stopSquares)
+                .on('resetClicked',resetSquare);
             });
 
         });
