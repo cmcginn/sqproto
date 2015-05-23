@@ -222,7 +222,7 @@ namespace Squares.Services
                 {
                     var activity = new ActivityRecord();
                     activity.Id = usa.Id;
-                    activity.Duration = usa.ElapsedMilliseconds;
+                    activity.Duration = Duration.FromMS(usa.ElapsedMilliseconds);
                     activity.StartDate = usa.StartUtc;
                     activity.ActivityState = ((ActivityStateTypes) usa.ActivityState).ToString();
                     item.ActivityRecords.Add(activity);

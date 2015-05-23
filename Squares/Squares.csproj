@@ -205,6 +205,7 @@
     <Compile Include="UserSquareActivity.cs">
       <DependentUpon>Domain.tt</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\Duration.cs" />
     <Compile Include="ViewModels\ReportItemViewModel.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\UserSquareActionModel.cs" />
@@ -212,6 +213,7 @@
     <Compile Include="ViewModels\UserSquareViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\bootstrap-datetimepicker.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Domain.Context.tt">
@@ -252,6 +254,7 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\app\square.js" />
+    <Content Include="Scripts\vendor\bootstrap-datetimepicker.min.js" />
     <Content Include="Scripts\vendor\tock.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />

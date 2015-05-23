@@ -1,5 +1,7 @@
 ﻿@model Squares.ViewModels.ReportViewModel
-
+<style>
+    .panel-group .panel{overflow:visible}
+</style>
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
     <div class="panel panel-default">
         <div class="panel-heading" role="tab">
@@ -13,13 +15,34 @@
             <div class="panel-body">
                 <div class="row" data-bind="foreach:activityRecords">
                     <div class="col-sm-6">
-                        <span data-bind="text:startDate().toDateString()"></span>
+                        <label>Start Date</label>
+                        <div class='input-group date' data-bind="attr:{'data-default':startDate().toISOString()}">
+                            <input type="text" class="form-control" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
                     </div>
                     <div class="col-sm-2">
                         <span data-bind="text:activityState"></span>
                     </div>
                     <div class="col-sm-4">
-                        <span data-bind="text:durationDisplay"></span>
+                        <div class="col-sm-3">
+                            <label>Days</label>
+                            <input type="text" class="form-control" data-bind="value:days" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Hours</label>
+                            <input type="text" class="form-control" data-bind="value:hours" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Minutes</label>
+                            <input type="text" class="form-control" data-bind="value:minutes" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Seconds</label>
+                            <input type="text" class="form-control" data-bind="value:seconds" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -33,16 +56,16 @@
             function ActivityRecord(options) {
                 var settings = options || {}
                 var result = {
-                    activityState:ko.observable(settings.ActivityState),
+                    activityState: ko.observable(settings.ActivityState),
                     startDate: ko.observable(new Date(settings.StartDate)),
-                    duration: ko.observable(msToDisplay(settings.Duration)),
+                    duration: settings.Duration,
                     durationDisplay: ko.observable(null),
-                    setDurationDisplay:function() {
-                        var r = lpad(result.duration().days.toString(), 2, '0') + ' - Days ' + lpad(result.duration().hours.toString(), 2, '0') + ':' + lpad(result.duration().minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.duration().seconds).toString(), 2, '0');
-                        result.durationDisplay(r);
-                    },
+                    days: ko.observable(settings.Duration.Days),
+                    hours: ko.observable(settings.Duration.Hours),
+                    minutes: ko.observable(settings.Duration.Minutes),
+                    seconds: ko.observable(settings.Duration.Seconds),
                     init: function() {
-                        result.setDurationDisplay();
+
                     }
 
                 };
@@ -53,13 +76,13 @@
             function ReportItem(options) {
                 var settings = options || {}
                 var result = {
-                    id:ko.observable(settings.Id),
+                    id: ko.observable(settings.Id),
                     name: ko.observable(settings.Name),
                     started: ko.observable(settings.MinDate),
                     ended: ko.observable(settings.MaxDate),
                     totalDuration: ko.observable(msToDisplay(settings.TotalDuration)),
                     totalDurationDisplay: ko.observable(null),
-                    activityRecords:ko.observableArray(settings.activityRecords),
+                    activityRecords: ko.observableArray(settings.activityRecords),
                     setTotalDurationDisplay: function() {
 
                         var r = lpad(result.totalDuration().days.toString(), 2, '0') + ' - Days ' + lpad(result.totalDuration().hours.toString(), 2, '0') + ':' + lpad(result.totalDuration().minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.totalDuration().seconds).toString(), 2, '0');
@@ -130,6 +153,11 @@
 
                     viewModel = ko.mapping.fromJS(vm);
                     ko.applyBindings(viewModel);
+                    $('.date').each(function() {
+                        $(this).datetimepicker({
+                            defaultDate: $(this).data('default')
+                    });
+                    });
                 });
             }
 

@@ -9,7 +9,7 @@ namespace Squares.ViewModels
     {
         public Guid Id { get; set; }
         public DateTime StartDate { get; set; }
-        public long Duration { get; set; }
+        public Duration Duration { get; set; }
 
         public string ActivityState { get; set; }
     }
@@ -23,6 +23,8 @@ namespace Squares.ViewModels
         public DateTime MinDate { get; set; }
 
         public DateTime MaxDate { get; set; }
+
+        
 
         public List<ActivityRecord> ActivityRecords
         {
