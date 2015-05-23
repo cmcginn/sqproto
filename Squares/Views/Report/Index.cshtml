@@ -1,0 +1,140 @@
+﻿@model Squares.ViewModels.ReportViewModel
+
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-bind="text:name,attr:{'aria-controls':'collapse-'+$data.id(),href:'#collapse-'+$data.id()}" data-parent="#accordion" aria-expanded="true">
+                </a>
+                <span data-bind="text:totalDurationDisplay" class="pull-right"></span>
+            </h4>
+        </div>
+        <div  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne" data-bind="attr:{id:'collapse-'+$data.id()}">
+            <div class="panel-body">
+                <div class="row" data-bind="foreach:activityRecords">
+                    <div class="col-sm-6">
+                        <span data-bind="text:startDate().toDateString()"></span>
+                    </div>
+                    <div class="col-sm-2">
+                        <span data-bind="text:activityState"></span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span data-bind="text:durationDisplay"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+    @section scripts{
+        <script>
+            function ActivityRecord(options) {
+                var settings = options || {}
+                var result = {
+                    activityState:ko.observable(settings.ActivityState),
+                    startDate: ko.observable(new Date(settings.StartDate)),
+                    duration: ko.observable(msToDisplay(settings.Duration)),
+                    durationDisplay: ko.observable(null),
+                    setDurationDisplay:function() {
+                        var r = lpad(result.duration().days.toString(), 2, '0') + ' - Days ' + lpad(result.duration().hours.toString(), 2, '0') + ':' + lpad(result.duration().minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.duration().seconds).toString(), 2, '0');
+                        result.durationDisplay(r);
+                    },
+                    init: function() {
+                        result.setDurationDisplay();
+                    }
+
+                };
+                result.init();
+                return result;
+            }
+
+            function ReportItem(options) {
+                var settings = options || {}
+                var result = {
+                    id:ko.observable(settings.Id),
+                    name: ko.observable(settings.Name),
+                    started: ko.observable(settings.MinDate),
+                    ended: ko.observable(settings.MaxDate),
+                    totalDuration: ko.observable(msToDisplay(settings.TotalDuration)),
+                    totalDurationDisplay: ko.observable(null),
+                    activityRecords:ko.observableArray(settings.activityRecords),
+                    setTotalDurationDisplay: function() {
+
+                        var r = lpad(result.totalDuration().days.toString(), 2, '0') + ' - Days ' + lpad(result.totalDuration().hours.toString(), 2, '0') + ':' + lpad(result.totalDuration().minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.totalDuration().seconds).toString(), 2, '0');
+                        result.totalDurationDisplay(r);
+                    },
+                    init: function() {
+                        result.setTotalDurationDisplay();
+
+
+                    }
+
+
+                };
+                result.init();
+                return result;
+            }
+
+            function lpad(originalstr, length, strToPad) {
+                while (originalstr.length < length)
+                    originalstr = strToPad + originalstr;
+                return originalstr;
+            }
+
+            function msToDisplay(ms) {
+
+                var delta = Math.abs(ms) / 1000;
+
+                // calculate (and subtract) whole days
+                var days = Math.floor(delta / 86400);
+                delta -= days * 86400;
+
+                // calculate (and subtract) whole hours
+                var hours = Math.floor(delta / 3600) % 24;
+                delta -= hours * 3600;
+
+                // calculate (and subtract) whole minutes
+                var minutes = Math.floor(delta / 60) % 60;
+                delta -= minutes * 60;
+
+                // what's left is seconds
+                var seconds = delta % 60;
+
+                var result = { days: days, hours: hours, minutes: minutes, seconds: seconds };
+
+                return result;
+            }
+
+            var vData;
+            var vm = null;
+            var viewModel = null;
+
+            function getReport() {
+
+                $.get(rootPath + 'api/Report', function(r, s) {
+                    vData = r;
+                    vm = { reportItems: [] };
+                    for (var i = 0; i < r.ReportItems.length; i++) {
+                        var item = r.ReportItems[i];
+                        item.activityRecords = [];
+
+                        for (var j = 0; j < item.ActivityRecords.length; j++) {
+                            var activityRecord = new ActivityRecord(item.ActivityRecords[j]);
+                            item.activityRecords.push(activityRecord);
+                        }
+                        var reportItem = new ReportItem(item);
+                        vm.reportItems.push(reportItem);
+                    }
+
+                    viewModel = ko.mapping.fromJS(vm);
+                    ko.applyBindings(viewModel);
+                });
+            }
+
+            $(function() {
+                getReport();
+            });
+        </script>
+    }

@@ -69,6 +69,7 @@ namespace Squares.Services
                             us.RunningTime += lastActivity.ElapsedMilliseconds;
                             _context.SaveChanges();
                         }
+
                     }
                     //allow reset activity to be restarted but keep state if it is not
                     if (us.ActivityState == (int) ActivityStateTypes.Stopped)
@@ -202,6 +203,33 @@ namespace Squares.Services
                 _context.SaveChanges();
             }
                 
+        }
+
+        public ReportViewModel GetReportViewModel(string userId)
+        {
+            var userSquares = _context.UserSquares.Where(x => x.UserId == userId && x.UserSquareActivities.Any()).ToList();
+            var result = new ReportViewModel();
+            userSquares.ForEach(us =>
+            {
+                var item = new ReportItemViewModel();
+                item.MinDate = us.UserSquareActivities.Min(x => x.StartUtc);
+                item.MaxDate = us.UserSquareActivities.Max(x => x.StartUtc);
+                item.Name = us.DisplayName;
+                item.TotalDuration = us.UserSquareActivities.Sum(x => x.ElapsedMilliseconds);
+                item.Id = us.Id;
+                result.ReportItems.Add(item);
+                us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().ForEach(usa =>
+                {
+                    var activity = new ActivityRecord();
+                    activity.Id = usa.Id;
+                    activity.Duration = usa.ElapsedMilliseconds;
+                    activity.StartDate = usa.StartUtc;
+                    activity.ActivityState = ((ActivityStateTypes) usa.ActivityState).ToString();
+                    item.ActivityRecords.Add(activity);
+
+                });
+            });
+            return result;
         }
     }
 

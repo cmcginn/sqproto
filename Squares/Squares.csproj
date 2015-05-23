@@ -164,6 +164,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\ReportController.cs" />
     <Compile Include="ApiControllers\ScratchController.cs" />
     <Compile Include="ApiControllers\SquareController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -174,6 +175,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Domain.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -203,6 +205,8 @@
     <Compile Include="UserSquareActivity.cs">
       <DependentUpon>Domain.tt</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\ReportItemViewModel.cs" />
+    <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\UserSquareActionModel.cs" />
     <Compile Include="ViewModels\UserSquaresViewModel.cs" />
     <Compile Include="ViewModels\UserSquareViewModel.cs" />
@@ -282,6 +286,7 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Home\Scratch.cshtml" />
     <Content Include="Views\Home\UserSquareEdit.cshtml" />
+    <Content Include="Views\Report\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
