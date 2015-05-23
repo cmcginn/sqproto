@@ -26,8 +26,9 @@ namespace Squares.ApiControllers
         }
 
         // POST: api/Report
-        public void Post([FromBody]string value)
+        public void Post(ReportItemViewModel model)
         {
+            _service.SaveReportItemViewModel(User.Identity.GetUserId(), model);
         }
 
         // PUT: api/Report/5

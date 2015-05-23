@@ -225,11 +225,48 @@ namespace Squares.Services
                     activity.Duration = Duration.FromMS(usa.ElapsedMilliseconds);
                     activity.StartDate = usa.StartUtc;
                     activity.ActivityState = ((ActivityStateTypes) usa.ActivityState).ToString();
+                    activity.UserSquareId = us.Id;
                     item.ActivityRecords.Add(activity);
 
                 });
             });
             return result;
+        }
+
+        public void SaveReportItemViewModel(string userId, ReportItemViewModel model)
+        {
+            var us = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.Id);
+
+            long elappsedTotal = 0;
+            model.ActivityRecords.ForEach(ar =>
+            {
+                var usa = us.UserSquareActivities.Single(x => x.Id == ar.Id);
+                usa.StartUtc = ar.StartDate;
+                var endDate =
+                    ar.StartDate.AddDays(ar.Duration.Days)
+                        .AddHours(ar.Duration.Hours)
+                        .AddMinutes(ar.Duration.Minutes)
+                        .AddSeconds(ar.Duration.Seconds);
+                usa.ElapsedMilliseconds = (long)(endDate - ar.StartDate).TotalMilliseconds;
+                elappsedTotal += usa.ElapsedMilliseconds;
+
+            });
+            us.RunningTime = elappsedTotal;
+            _context.SaveChanges();
+        }
+
+        public void DeleteUserSquareActivity(string userId, Guid id)
+        {
+            var target = _context.UserSquareActivities.Single(x => x.Id == id && x.UserSquare.UserId == userId);
+            _context.UserSquareActivities.Remove(target);
+            _context.SaveChanges();
+        }
+
+        public void DeleteUserSquare(string userId, Guid id)
+        {
+            var target = _context.UserSquares.Single(x => x.UserId == userId && x.Id == id);
+            _context.UserSquares.Remove(target);
+            _context.SaveChanges();
         }
     }
 

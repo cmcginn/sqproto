@@ -8,7 +8,9 @@
             <h4 class="panel-title">
                 <a data-toggle="collapse" data-bind="text:name,attr:{'aria-controls':'collapse-'+$data.id(),href:'#collapse-'+$data.id()}" data-parent="#accordion" aria-expanded="true">
                 </a>
-                <span data-bind="text:totalDurationDisplay" class="pull-right"></span>
+                <span class=" glyphicon glyphicon-remove pull-right" aria-hidden="true" data-bind="click:onDeleteItemClick"></span>
+                <span class="glyphicon glyphicon-floppy-save col-sm-1 pull-right" aria-hidden="true" data-bind="click:onSaveItemClick"></span>
+                <span data-bind="text:totalDurationDisplay" class="col-sm-3 pull-right"></span>
             </h4>
         </div>
         <div  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne" data-bind="attr:{id:'collapse-'+$data.id()}">
@@ -24,7 +26,7 @@
                         </div>
                     </div>
                     <div class="col-sm-2">
-                        <span data-bind="text:activityState"></span>
+                        <span class="badge" data-bind="text:activityState"></span>
                     </div>
                     <div class="col-sm-4">
                         <div class="col-sm-3">
@@ -44,7 +46,14 @@
                             <input type="text" class="form-control" data-bind="value:seconds" />
                         </div>
                     </div>
+                
+                        <div class="col-sm-12">
+                            <a href="javascript:void(0)" data-bind="click:onDeleteActivityItemClick">Remove</a>
+                            
+                        </div>
+              
                 </div>
+      
             </div>
         </div>
     </div>
@@ -53,9 +62,47 @@
 
     @section scripts{
         <script>
+            function deleteItem(e) {
+               $.post(rootPath+'Report/DeleteItem',{id:e.args.id()},function(r, s) {
+                   var target = null;
+                   for (var i = 0; i < viewModel.reportItems().length; i++) {
+                       if (viewModel.reportItems()[i].id() == e.args.id())
+                           target = viewModel.reportItems()[i];
+                   }
+                   viewModel.reportItems.remove(target);
+               });
+             
+            }
+            function deleteActivityItem(e) {
+                var data = e.args.toData();
+                $.post(rootPath + 'Report/DeleteActivityItem', { id: e.args.id() }, function(r, s) {
+                    var parent = null;
+                    for (var i = 0; i < viewModel.reportItems().length; i++) {
+                        if (viewModel.reportItems()[i].id() == e.args.parentId())
+                            parent = viewModel.reportItems()[i];
+                    }
+                    for (var j = 0; j < parent.activityRecords().length; j++) {
+                        if (parent.activityRecords()[j].id() == e.args.id()) {
+                            console.log(parent.activityRecords.remove(parent.activityRecords()[j]));
+                        }
+                    }
+                });
+            }
+
+
+       
+            function saveItem(e) {
+                var data = e.args.toData();
+                $.post(rootPath + 'api/Report', data, function(r, s) {
+                    console.log(s);
+                });
+
+            }
             function ActivityRecord(options) {
                 var settings = options || {}
                 var result = {
+                    id: ko.observable(settings.Id),
+                    parentId:ko.observable(settings.UserSquareId),
                     activityState: ko.observable(settings.ActivityState),
                     startDate: ko.observable(new Date(settings.StartDate)),
                     duration: settings.Duration,
@@ -64,8 +111,25 @@
                     hours: ko.observable(settings.Duration.Hours),
                     minutes: ko.observable(settings.Duration.Minutes),
                     seconds: ko.observable(settings.Duration.Seconds),
+                    isDeleted:ko.observable(false),
+                    onDateChanged: function(e) {
+                        console.log(e);
+                    },
+                    onDeleteActivityItemClick:function(e) {
+                        $.event.trigger({ type: 'deleteActivityItemClicked', args: result, time: new Date() });
+                    },
                     init: function() {
 
+                    },
+                    toData:function() {
+                        return{
+                            Id: result.id(),
+                            StartDate: result.startDate().toISOString(),
+                            ActivityState: result.activityState(),
+                            Duration: { days: result.days(), hours: result.hours(), minutes: result.minutes(), seconds: result.seconds() },
+                            IsDeleted: result.isDeleted(),
+                            UserSquareId:result.parentId()
+                        }
                     }
 
                 };
@@ -90,8 +154,26 @@
                     },
                     init: function() {
                         result.setTotalDurationDisplay();
+                    },
+                    onSaveItemClick: function() {
+                        $.event.trigger({ type: 'saveItemClicked', args: result, time: new Date() });
+                    },
+                    onDeleteItemClick: function () {
+                        $.event.trigger({ type: 'deleteItemClicked', args: result, time: new Date() });
+                    },
+                    toData:function() {
+                        var data = {
+                            Id: result.id(),
+                            Name: result.name(),
+                            MinDate: result.started(),
+                            MaxDate: result.ended(),
+                            ActivityRecords:[]
 
-
+                        };
+                        for (var i = 0; i < result.activityRecords().length; i++) {
+                            data.ActivityRecords.push(result.activityRecords()[i].toData());
+                        }
+                        return data;
                     }
 
 
@@ -104,6 +186,12 @@
                 while (originalstr.length < length)
                     originalstr = strToPad + originalstr;
                 return originalstr;
+            }
+
+            function dateChanged(e, s) {
+
+                ko.dataFor(e.target).startDate(new Date(e.date._d));
+
             }
 
             function msToDisplay(ms) {
@@ -156,13 +244,17 @@
                     $('.date').each(function() {
                         $(this).datetimepicker({
                             defaultDate: $(this).data('default')
-                    });
+                        }).on('dp.change', dateChanged);
                     });
                 });
             }
 
             $(function() {
                 getReport();
+                $(document).on('saveItemClicked', saveItem)
+                    .on('deleteActivityItemClicked', deleteActivityItem)
+                    .on('deleteItemClicked',deleteItem);
+
             });
         </script>
     }

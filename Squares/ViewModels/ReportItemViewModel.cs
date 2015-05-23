@@ -7,6 +7,7 @@ namespace Squares.ViewModels
 {
     public class ActivityRecord
     {
+        public Guid UserSquareId { get; set; }
         public Guid Id { get; set; }
         public DateTime StartDate { get; set; }
         public Duration Duration { get; set; }
@@ -24,8 +25,7 @@ namespace Squares.ViewModels
 
         public DateTime MaxDate { get; set; }
 
-        
-
+        public bool IsDeleted { get; set; }
         public List<ActivityRecord> ActivityRecords
         {
             get { return _ActivityRecords ?? (_ActivityRecords = new List<ActivityRecord>()); }

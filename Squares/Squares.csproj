@@ -242,6 +242,7 @@
     <Content Include="Domain.edmx.diagram">
       <DependentUpon>Domain.edmx</DependentUpon>
     </Content>
+    <None Include="Properties\PublishProfiles\Deployment.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
