@@ -95,6 +95,8 @@ if (typeof Function.prototype.bind != 'function') {
         yyyy_mm_dd_HH_MM_SS_ms_RE = /^(\d{4})-([0-1]\d)-([0-3]\d)(?:\s|T)(\d{2}):(\d{2}):(\d{2})(?:\.(\d{3})Z?)?$/;
 
     var Tock = function (options) {
+        options = options || {};
+
         if (!(this instanceof Tock)) return new Tock(options);
 
         Tock.instances = (Tock.instances || 0) + 1;
@@ -170,16 +172,15 @@ if (typeof Function.prototype.bind != 'function') {
             this.pause_time = this.lap();
             this.stop();
         }
-        //Custom Pause means pause, we do not want to start this if we call pause, even if we call it several times
-        //else {
-        //    if (this.pause_time) {
-        //        if (this.countdown) {
-        //            _startCountdown.call(this, this.pause_time);
-        //        } else {
-        //            _startTimer.call(this, Date.now() - this.pause_time);
-        //        }
-        //    }
-        //}
+        else {
+            if (this.pause_time) {
+                if (this.countdown) {
+                    _startCountdown.call(this, this.pause_time);
+                } else {
+                    _startTimer.call(this, Date.now() - this.pause_time);
+                }
+            }
+        }
     };
 
     /**

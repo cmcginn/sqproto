@@ -1,3 +1,142 @@
-﻿<div id="row">
-    <div class="col-sm-12"></div>
+﻿<div class="row" data-bind="foreach:userSquares">
+    <div class="col-sm-12">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><small>Days</small></th>
+
+
+                    <th><small>Hours</small></th>
+
+
+                    <th><small>Minutes</small></th>
+
+
+                    <th><small>Seconds</small></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
+                    <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
+                    <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
+                    <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-sm-12">
+        <button class="btn btn-block btn-default" data-bind="text:timerButtonDisplay,click:onTimerButtonClick"></button>
+    </div>
+
 </div>
+
+@section scripts{
+    
+    <script src="~/Scripts/app/common.js"></script>
+    <script src="~/Scripts/vendor/tock.js"></script>
+    <script>
+
+
+        var viewModel = null;
+        var data = {
+            userSquares: [
+                { id: '742e0d12-2512-4896-a544-4e0ee9da149f', name: 'Square1', time: 0, state: 0 }
+            ]
+        };
+
+        function Square(options) {
+            var settings = options || {};
+        }
+
+        function Square(options) {
+            var settings = options || {};
+            function getDuration(ms) {
+                var d = common.getDuration(ms);
+                result.duration().days(d.days);
+                result.duration().hours(d.hours);
+                result.duration().minutes(d.minutes);
+                result.duration().seconds(d.seconds);
+            }
+
+            var result = {
+                id: ko.observable(settings.id),
+                state:ko.observable(settings.state),
+                name: ko.observable(settings.name),
+                time: ko.observable(settings.time),
+                timerButtonDisplay:ko.observable('Start'),
+                duration:ko.observable({
+                    days: ko.observable(0),
+                    hours: ko.observable(0),
+                    minutes: ko.observable(0),
+                    seconds: ko.observable(0),
+                }),               
+                timer: null,
+                init: function() {
+                    result.timer = new Tock({ interval: 1000, callback: result.onTick });
+                    getDuration(result.time());
+                },
+                startTimer: function() {
+                    result.timer.start(result.time());
+                    result.state(1);
+                    result.timerButtonDisplay('Pause');
+                },
+                pauseTimer: function() {
+                    result.timer.pause();
+                    result.state(2);
+                    result.timerButtonDisplay('Resume');
+                },
+                resumeTimer:function() {
+                    result.timer.pause();
+                    result.state(1);
+                    result.timerButtonDisplay('Pause');
+                },
+                onTimerButtonClick:function() {
+                    switch(result.state()) {
+                        case 0:
+                            result.startTimer();
+                            break;
+                        case 1:
+                            result.pauseTimer();
+                            break;
+                        case 2:
+                            result.resumeTimer();
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                onTick: function() {
+                    getDuration(result.timer.lap());
+                },
+
+                onDurationEdit: function () {
+                    result.timer.stop();
+                    var d = 0;
+                    d += Number(result.duration().days()) * 86400000;
+                    d += Number(result.duration().hours()) * 3600000;
+                    d += Number(result.duration().minutes()) * 60000;
+                    d += Number(result.duration().seconds()) * 1000;
+                    result.time(d);
+                    result.timer.start(result.time());
+                }
+
+            };
+            result.init();
+            return result;
+        }
+
+        $(function() {
+            var vm = { userSquares: [] };
+            for (var i = 0; i < data.userSquares.length; i++) {
+                var s = new Square(data.userSquares[i]);
+                vm.userSquares.push(s);
+
+            }
+
+            viewModel = ko.mapping.fromJS(vm);
+            ko.applyBindings(viewModel);
+        });
+    </script>
+
+}
