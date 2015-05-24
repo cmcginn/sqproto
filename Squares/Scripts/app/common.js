@@ -22,7 +22,7 @@
         // what's left is seconds
         var seconds = Math.floor(delta % 60);
 
-        var result = { days: days, hours: hours, minutes: minutes, seconds: seconds };
+        var result = { days: days, hours: hours, minutes: minutes, seconds: seconds,milliseconds:ms };
 
         return result;
     }

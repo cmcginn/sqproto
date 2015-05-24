@@ -1,33 +1,36 @@
 ﻿<div class="row" data-bind="foreach:userSquares">
-    <div class="col-sm-12">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th><small>Days</small></th>
+    <div class="col-sm-4">
+        <div class="col-sm-12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><small>Days</small></th>
 
 
-                    <th><small>Hours</small></th>
+                        <th><small>Hours</small></th>
 
 
-                    <th><small>Minutes</small></th>
+                        <th><small>Minutes</small></th>
 
 
-                    <th><small>Seconds</small></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
-                    <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
-                    <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
-                    <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
-                </tr>
-            </tbody>
-        </table>
+                        <th><small>Seconds</small></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
+                        <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
+                        <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
+                        <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-12">
+            <button class="btn btn-block btn-default" data-bind="text:timerButtonDisplay,click:onTimerButtonClick"></button>
+        </div>
     </div>
-    <div class="col-sm-12">
-        <button class="btn btn-block btn-default" data-bind="text:timerButtonDisplay,click:onTimerButtonClick"></button>
-    </div>
+
 
 </div>
 
@@ -36,7 +39,53 @@
     <script src="~/Scripts/app/common.js"></script>
     <script src="~/Scripts/vendor/tock.js"></script>
     <script>
+        var viewModel = null;
 
+        function toModel(s) {
+
+            return {
+                id: s.Id,
+                activityId:s.UserSquareActivityId,
+                name: s.Name,
+                time: 0,
+                state: s.ActivityState
+            }
+        }
+
+        function fromModel(s) {
+            return {
+                Id: s.id(),
+                Name: s.name(),
+                ActivityState: s.state(),
+                Elapsed: s.elapsed(),
+                Milliseconds: s.milliseconds(),
+                UserSquareActivityId:s.activityId()
+            }
+        }
+
+        function getSquares() {
+            var vm = { userSquares: [] };
+            $.get(rootPath + 'api/Square', function(r, s) {
+
+                for (var i = 0; i < r.UserSquares.length; i++) {
+                    vm.userSquares.push(new Square(toModel(r.UserSquares[i])));
+                }
+                viewModel = ko.mapping.fromJS(vm);
+                ko.applyBindings(viewModel);
+            });
+
+            $(document).on('timerButtonClicked', saveSquares);
+        }
+
+        function saveSquares() {
+            var d = { UserSquares: [] };
+            for (var i = 0; i < viewModel.userSquares().length; i++) {
+                d.UserSquares.push(fromModel(viewModel.userSquares()[i]));
+            }
+            $.post(rootPath + 'api/Square', d, function(r, s) {
+
+            });
+        }
 
         var viewModel = null;
         var data = {
@@ -51,6 +100,7 @@
 
         function Square(options) {
             var settings = options || {};
+
             function getDuration(ms) {
                 var d = common.getDuration(ms);
                 result.duration().days(d.days);
@@ -61,23 +111,28 @@
 
             var result = {
                 id: ko.observable(settings.id),
-                state:ko.observable(settings.state),
+                activityId:ko.observable(settings.activityId),
+                state: ko.observable(settings.state),
                 name: ko.observable(settings.name),
                 time: ko.observable(settings.time),
-                timerButtonDisplay:ko.observable('Start'),
-                duration:ko.observable({
+                elapsed: ko.observable(0),
+                milliseconds:ko.observable(new Date().getTime()),
+                timerButtonDisplay: ko.observable('Start'),
+                duration: ko.observable({
                     days: ko.observable(0),
                     hours: ko.observable(0),
                     minutes: ko.observable(0),
                     seconds: ko.observable(0),
-                }),               
+                    millseconds:ko.observable(0),
+                }),
                 timer: null,
                 init: function() {
                     result.timer = new Tock({ interval: 1000, callback: result.onTick });
                     getDuration(result.time());
                 },
                 startTimer: function() {
-                    result.timer.start(result.time());
+                    //result.started(new Date().getTime() - result.time());
+                    result.timer.start();
                     result.state(1);
                     result.timerButtonDisplay('Pause');
                 },
@@ -86,31 +141,37 @@
                     result.state(2);
                     result.timerButtonDisplay('Resume');
                 },
-                resumeTimer:function() {
+                resumeTimer: function () {
+                    //  result.started(new Date().getTime() - result.time());
+                    var tt = result.timer.lap();
                     result.timer.pause();
                     result.state(1);
                     result.timerButtonDisplay('Pause');
                 },
-                onTimerButtonClick:function() {
-                    switch(result.state()) {
-                        case 0:
-                            result.startTimer();
-                            break;
-                        case 1:
-                            result.pauseTimer();
-                            break;
-                        case 2:
-                            result.resumeTimer();
-                            break;
-                        default:
-                            break;
+                onTimerButtonClick: function () {
+                    result.milliseconds(new Date().getTime());
+                    switch (result.state()) {
+                    case 0:
+                        result.startTimer();
+                        break;
+                    case 1:
+                        result.pauseTimer();
+                        break;
+                    case 2:
+                        result.startTimer();
+                        break;
+                    default:
+                        break;
                     }
+                    $.event.trigger({ type: 'timerButtonClicked', args: result, time: new Date() });
                 },
-                onTick: function() {
-                    getDuration(result.timer.lap());
+                onTick: function () {
+                    result.elapsed(result.timer.lap());
+                    getDuration(result.elapsed());
                 },
 
-                onDurationEdit: function () {
+                onDurationEdit: function() {
+
                     result.timer.stop();
                     var d = 0;
                     d += Number(result.duration().days()) * 86400000;
@@ -119,23 +180,27 @@
                     d += Number(result.duration().seconds()) * 1000;
                     result.time(d);
                     result.timer.start(result.time());
+                    //result.started(new Date().getTime() - result.time());
                 }
+                
 
             };
+
             result.init();
             return result;
         }
 
         $(function() {
-            var vm = { userSquares: [] };
-            for (var i = 0; i < data.userSquares.length; i++) {
-                var s = new Square(data.userSquares[i]);
-                vm.userSquares.push(s);
+            getSquares();
+            //var vm = { userSquares: [] };
+            //for (var i = 0; i < data.userSquares.length; i++) {
+            //    var s = new Square(data.userSquares[i]);
+            //    vm.userSquares.push(s);
 
-            }
+            //}
 
-            viewModel = ko.mapping.fromJS(vm);
-            ko.applyBindings(viewModel);
+            //viewModel = ko.mapping.fromJS(vm);
+            //ko.applyBindings(viewModel);
         });
     </script>
 

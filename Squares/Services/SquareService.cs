@@ -61,15 +61,34 @@ namespace Squares.Services
                     };
                     if (us.UserSquareActivities.Any())
                     {
-                        var lastActivity = us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().Last();
-                        if (lastActivity != null && lastActivity.ActivityState == (int)ActivityStateTypes.Started)
+                        var lastActivity = us.UserSquareActivities.OrderBy(x => x.CreatedOnUtc).ToList().Last();
+                        if (lastActivity != null)
                         {
-                            lastActivity.ElapsedMilliseconds =
-                                (long)(System.DateTime.UtcNow - lastActivity.StartUtc).TotalMilliseconds;
-                            us.RunningTime += lastActivity.ElapsedMilliseconds;
-                            _context.SaveChanges();
+                            if (lastActivity.ActivityState == (int) ActivityStateTypes.Started)
+                            {
+                               // var d = DateTime.Parse("1/1/1970").Date.AddMilliseconds(lastActivity.BeginMilliseconds);
+                                //userSquareModel.EndMilliseconds = (long)(System.DateTime.UtcNow - d).TotalMilliseconds;
+                                userSquareModel.UserSquareActivityId = lastActivity.Id;
+                            }
+                            else
+                            {
+                                userSquareModel.UserSquareActivityId = Guid.NewGuid();
+                                //userSquareModel.BeginMilliseconds = 0;
+                               // userSquareModel.EndMilliseconds = 0;
+                            }
                         }
+                        //if (lastActivity != null && lastActivity.ActivityState == (int)ActivityStateTypes.Started)
+                        //{
+                        //    lastActivity.ElapsedMilliseconds =
+                        //        (long)(System.DateTime.UtcNow - lastActivity.StartUtc).TotalMilliseconds;
+                        //    us.RunningTime += lastActivity.ElapsedMilliseconds;
+                        //    _context.SaveChanges();
+                        //}
 
+                    }
+                    else
+                    {
+                        userSquareModel.UserSquareActivityId = Guid.NewGuid();
                     }
                     //allow reset activity to be restarted but keep state if it is not
                     if (us.ActivityState == (int) ActivityStateTypes.Stopped)
@@ -83,44 +102,48 @@ namespace Squares.Services
 
         public void SaveUserSquaresViewModel(UserSquaresViewModel model)
         {
-            var now = System.DateTime.UtcNow;
-            //pause everything started
-            var userSquares = _context.UserSquares.Where(x => x.UserId == model.UserId &! x.Hidden).ToList();
-            userSquares.ForEach(us =>
+            try
             {
-                var lastActivity = us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().LastOrDefault();
-                var squareModel = model.UserSquares.Single(x => x.Id == us.Id);
-                if (lastActivity != null)
+                var userSquares = _context.UserSquares.Where(x => x.UserId == model.UserId).ToList();
+
+                model.UserSquares.ForEach(userSquareModel =>
                 {
-                    //pause all started
-                    if (lastActivity.ActivityState == (int) ActivityStateTypes.Started)
+                    var userSquare = userSquares.Single(x => x.Id == userSquareModel.Id);
+                    var userSquareActivity = userSquare.UserSquareActivities.Any() ? userSquare.UserSquareActivities.OrderBy(x => x.CreatedOnUtc).ToList().Last() : null;
+                    if (userSquareModel.ActivityState == ActivityStateTypes.Paused && userSquareActivity != null)
                     {
-                        lastActivity.ActivityState = (int) ActivityStateTypes.Paused;
-                        lastActivity.ElapsedMilliseconds = squareModel.Elapsed;
-                        us.RunningTime += squareModel.Elapsed;
-                        us.ActivityState = lastActivity.ActivityState;
+
+                        //userSquareActivity.BeginMilliseconds = userSquareModel.BeginMilliseconds;
+                        //userSquareActivity.EndMilliseconds = userSquareModel.EndMilliseconds;
+                        userSquareActivity.Elapsed = userSquareModel.Elapsed;
+                        userSquareActivity.Milliseconds = userSquareModel.Milliseconds - userSquareModel.Elapsed;
+                        userSquareActivity.ActivityState = (int) ActivityStateTypes.Paused;
+                        userSquareActivity.LastUpdatedUtc = System.DateTime.UtcNow;
                     }
-                }
+                    else if (userSquareModel.ActivityState == ActivityStateTypes.Started)
+                    {
+                        userSquareActivity = new UserSquareActivity
+                        {
+                            CreatedOnUtc = System.DateTime.UtcNow,
+                            ActivityState = (int) ActivityStateTypes.Started,
+                            Milliseconds = userSquareModel.Milliseconds,
+                            Elapsed = 0,
+                            Id = Guid.NewGuid(),
+                            UserSquareId = userSquare.Id,
 
-            });
+                        };
+                        _context.UserSquareActivities.Add(userSquareActivity);
+                    }
 
-            var started = model.UserSquares.SingleOrDefault(x => x.ActivityState == ActivityStateTypes.Started);
-            if (started != null)
-            {
-                var startedActivity = new UserSquareActivity
-                {
-                    Id = Guid.NewGuid(),
-                    StartUtc = DateTime.Parse("1/1/1970").Date.AddMilliseconds(started.StartDate.GetValueOrDefault()),
-                    UserSquareId = started.Id,
-                    ElapsedMilliseconds = 0,
-                    ActivityState = (int)ActivityStateTypes.Started
-                };
-                var us = _context.UserSquares.Single(x => x.Id == started.Id);
-                us.ActivityState = startedActivity.ActivityState;
-                us.UserSquareActivities.Add(startedActivity);
-               // _context.UserSquareActivities.Add(startedActivity);
+                });
+                if (_context.ChangeTracker.HasChanges())
+                    _context.SaveChanges();
             }
-            _context.SaveChanges();
+            catch (System.Exception ex)
+            {
+                var z = "Y";
+                throw (ex);
+            }
 
 
 
@@ -146,11 +169,11 @@ namespace Squares.Services
             var target = _context.UserSquares.Where(x => x.UserId == userId && x.Id == id).SingleOrDefault();
             if (target != null)
             {
-                var lastActivity =
-                    target.UserSquareActivities.OrderBy(x => x.StartUtc).Last();
-                lastActivity.ActivityState =
-                        (int)ActivityStateTypes.Stopped;
-                target.ActivityState = lastActivity.ActivityState;
+                //var lastActivity =
+                //    target.UserSquareActivities.OrderBy(x => x.BeginMilliseconds).Last();
+                //lastActivity.ActivityState =
+                //        (int)ActivityStateTypes.Stopped;
+                //target.ActivityState = lastActivity.ActivityState;
                 target.RunningTime = 0;
                 _context.SaveChanges();
             }
@@ -185,7 +208,7 @@ namespace Squares.Services
             var result = new UserSquareViewModel
             {
                 ActivityState = ActivityStateTypes.None,
-                Elapsed = 0,
+               // BeginMilliseconds = 0,
                 Id = userSquare.Id,
                 Name = userSquare.DisplayName,
                 RunningTime = userSquare.RunningTime,
@@ -212,23 +235,23 @@ namespace Squares.Services
             userSquares.ForEach(us =>
             {
                 var item = new ReportItemViewModel();
-                item.MinDate = us.UserSquareActivities.Min(x => x.StartUtc);
-                item.MaxDate = us.UserSquareActivities.Max(x => x.StartUtc);
+              //  item.MinDate = us.UserSquareActivities.Min(x => x.StartUtc);
+               // item.MaxDate = us.UserSquareActivities.Max(x => x.StartUtc);
                 item.Name = us.DisplayName;
-                item.TotalDuration = us.UserSquareActivities.Sum(x => x.ElapsedMilliseconds);
+                //item.TotalDuration = us.UserSquareActivities.Sum(x => x.BeginMilliseconds);
                 item.Id = us.Id;
                 result.ReportItems.Add(item);
-                us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().ForEach(usa =>
-                {
-                    var activity = new ActivityRecord();
-                    activity.Id = usa.Id;
-                    activity.Duration = Duration.FromMS(usa.ElapsedMilliseconds);
-                    activity.StartDate = usa.StartUtc;
-                    activity.ActivityState = ((ActivityStateTypes) usa.ActivityState).ToString();
-                    activity.UserSquareId = us.Id;
-                    item.ActivityRecords.Add(activity);
+                //us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().ForEach(usa =>
+                //{
+                //    var activity = new ActivityRecord();
+                //    activity.Id = usa.Id;
+                //    activity.Duration = Duration.FromMS(usa.ElapsedMilliseconds);
+                //    activity.StartDate = usa.StartUtc;
+                //    activity.ActivityState = ((ActivityStateTypes) usa.ActivityState).ToString();
+                //    activity.UserSquareId = us.Id;
+                //    item.ActivityRecords.Add(activity);
 
-                });
+                //});
             });
             return result;
         }
@@ -241,14 +264,14 @@ namespace Squares.Services
             model.ActivityRecords.ForEach(ar =>
             {
                 var usa = us.UserSquareActivities.Single(x => x.Id == ar.Id);
-                usa.StartUtc = ar.StartDate;
+                //usa.StartUtc = ar.StartDate;
                 var endDate =
                     ar.StartDate.AddDays(ar.Duration.Days)
                         .AddHours(ar.Duration.Hours)
                         .AddMinutes(ar.Duration.Minutes)
                         .AddSeconds(ar.Duration.Seconds);
-                usa.ElapsedMilliseconds = (long)(endDate - ar.StartDate).TotalMilliseconds;
-                elappsedTotal += usa.ElapsedMilliseconds;
+                //usa.BeginMilliseconds = (long)(endDate - ar.StartDate).TotalMilliseconds;
+                //elappsedTotal += usa.BeginMilliseconds;
 
             });
             us.RunningTime = elappsedTotal;

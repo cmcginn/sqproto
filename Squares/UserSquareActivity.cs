@@ -16,8 +16,10 @@ namespace Squares
     {
         public System.Guid Id { get; set; }
         public System.Guid UserSquareId { get; set; }
-        public System.DateTime StartUtc { get; set; }
-        public long ElapsedMilliseconds { get; set; }
+        public System.DateTime CreatedOnUtc { get; set; }
+        public Nullable<System.DateTime> LastUpdatedUtc { get; set; }
+        public long Elapsed { get; set; }
+        public long Milliseconds { get; set; }
         public int ActivityState { get; set; }
     
         public virtual UserSquare UserSquare { get; set; }
