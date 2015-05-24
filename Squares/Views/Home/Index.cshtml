@@ -1,38 +1,65 @@
-﻿<div style="margin:auto">
-    <div data-bind="foreach:UserSquares" class="row">
-        <div class="col-sm-3" data-bind="visible:visible">
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <div class="col-sm-12 text-center">
-                        <div class="input-group">
-                            <input type="text" data-bind="value:name" class="form-control" />
-                            <div class="input-group-addon">
-                                <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
+﻿<div class="row">
+    <div class="col-sm-12">
+        <div data-bind="foreach:UserSquares" class="row">
+            <div class="col-sm-4" data-bind="visible:visible">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="col-sm-12 text-center">
+                            <div class="input-group">
+                                <input type="text" data-bind="value:name" class="form-control" />
+                                <div class="input-group-addon">
+                                    <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-sm-12 text-center">
-                        <div class="btn btn-default btn-lg" data-bind="text:displayValue,click:onSquareClick"></div>
-                    </div>
-                    <div class="col-sm-12 text-center" data-bind="visible:canReset">
-                        <div class="btn btn-sm btn-default" data-bind="click:onResetClick">Reset</div>
-                    </div>
-                    <div class="col-sm-12 text-center" data-bind="visible:canHide">
-                        <div class="btn btn-sm btn-default" data-bind="click:onHideClick">Hide</div>
+                        <div class="col-sm-12 text-center">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th><small>Days</small></th>
+
+
+                                        <th><small>Hours</small></th>
+
+
+                                        <th><small>Minutes</small></th>
+
+
+                                        <th><small>Seconds</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="text" class="form-control" data-bind="value:days,enable:enabled" /></td>
+                                        <td><input type="text" class="form-control" data-bind="value:hours,enable:enabled" /></td>
+                                        <td><input type="text" class="form-control" data-bind="value:minutes,enable:enabled,event:{change:onTimeChanged}" /></td>
+                                        <td><input type="text" class="form-control" data-bind="value:seconds,enable:enabled"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-sm-12 text-center">
+                            <button class="btn btn-block btn-default" data-bind="click:onSquareClick"><h3 data-bind="text:availableState"></h3></button>
+                        </div>
+                        <div class="col-sm-12 text-center" data-bind="visible:canReset">
+                            <div class="btn btn-sm btn-default" data-bind="click:onResetClick">Reset</div>
+                        </div>
+                        <div class="col-sm-12 text-center" data-bind="visible:canHide">
+                            <div class="btn btn-sm btn-default" data-bind="click:onHideClick">Hide</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-    </div>
-    <div class="row">
-        <div class="col-sm-12">
-            <button id="addNew">Add</button>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <button id="addNew">Add</button>
+            </div>
         </div>
     </div>
-
     @section scripts{
-    </div>
+</div>
 
     <script src="~/Scripts/vendor/tock.js"></script>
     @*<script src="~/Scripts/app/model.js"></script>*@

@@ -3,7 +3,7 @@
         originalstr = strToPad + originalstr;
     return originalstr;
 }
-function setTime(ms) {
+function getDuration(ms) {
 
     var delta = Math.abs(ms) / 1000;
 
@@ -20,26 +20,55 @@ function setTime(ms) {
     delta -= minutes * 60;
 
     // what's left is seconds
-    var seconds = delta % 60;
+    var seconds = Math.floor(delta % 60);
 
-    var result = { days: days, hours: hours, minutes: minutes, seconds: seconds };
+    var result = { days: days, hours: hours, minutes: minutes, seconds: seconds, milliseconds:ms };
 
     return result;
 }
-
+function toMS(d) {
+    var ms = 0;
+    ms += d.days * 86400000;
+    ms += d.hours * 3600000;
+    ms += d.minutes * 60000;
+    ms += d.seconds * 1000;
+    return ms;
+}
 var Square = function (options) {
     var settings = options || {};
+
     var result = {
         id: ko.observable(settings.Id),
         elapsed: ko.observable(settings.Elapsed),
         started: ko.observable(settings.Elapsed),
         startDate: ko.observable(settings.StartDate),
-        runningTime: ko.observable(settings.RunningTime),
+        duration: ko.observable({ days: settings.Duration.Days, hours: settings.Duration.Hours, minutes: settings.Duration.Minutes, seconds: settings.Duration.Seconds, milliseconds: settings.Duration.Milliseconds }),
+        days: ko.observable(settings.Duration.Days),
+        hours: ko.observable(settings.Duration.Hours),
+        minutes: ko.observable(settings.Duration.Minutes),
+        seconds: ko.observable(settings.Duration.Seconds),
+        milliseconds: ko.observable(Number(settings.Duration.Milliseconds)),
+        enabled:ko.observable(true),
         timer: null,
         activityState: ko.observable(settings.ActivityState),
+        availableState:ko.observable(''),
         name: ko.observable(settings.Name),
+        setAvailableState:function () {
+            var r = 'Start';
+            switch (result.activityState()) {
+                case 0:
+                case 2:
+                    r = 'Start';
+                    break;
+                case 1:
+                    r = 'Pause';
+                    break;
+                default:
+                    break;
+            }
+            result.availableState(r);
+        },
         value: null,
-        displayValue: ko.observable(null),
         canReset: ko.observable(false),
         canHide: ko.observable(false),
         visible: ko.observable(settings.Visible),
@@ -69,50 +98,57 @@ var Square = function (options) {
             //can reset if started or paused
             result.canReset(result.activityState() > 1);
             result.canHide(result.activityState() != 1);
+            result.setAvailableState();
             $.event.trigger({ type: 'squareClicked', args: result, time: new Date() });
+        },
+        onTimeChanged: function () {
+            var duration = { days: result.days(), hours: result.hours(), minutes: result.minutes(), seconds: result.seconds() };
+            var ms = toMS(duration);
+            result.duration(getDuration(ms));
         },
         onRenameClick: function() {
             $.event.trigger({ type: 'renameClicked', args: result, time: new Date() });
         },
         onTick: function () {
-
-            result.elapsed(result.timer.lap());
-            result.value = setTime(result.runningTime() + result.elapsed());
-            result.getDisplayValue();
-         
-
             
-        },
-        getDisplayValue: function () {
-            var r = lpad(result.value.days.toString(), 2, '0') + ' - Days ' + lpad(result.value.hours.toString(), 2, '0') + ':' + lpad(result.value.minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.value.seconds).toString(), 2, '0');
-            result.displayValue(r);
+            result.elapsed(result.timer.lap());
+            var duration = getDuration(result.duration().milliseconds + result.timer.lap());
+            result.days(duration.days);
+            result.hours(duration.hours);
+            result.minutes(duration.minutes);
+            result.seconds(duration.seconds);
+            result.milliseconds(duration.milliseconds);
+           
         },
         init: function () {
-            result.value = setTime(result.runningTime());
-            result.getDisplayValue();
-            result.timer = new Tock({ interval: 100, callback: result.onTick });
+           
+            result.timer = new Tock({ interval: 1000, callback: result.onTick });
             result.canReset(result.activityState() > 1);
             result.canHide(result.activityState() != 1);
+            result.setAvailableState();
+            
         },
         startTimer:function() {
             result.timer.start();
             result.activityState(1);
+            result.enabled(false);
         },
         pauseTimer: function () {
             result.timer.pause();
             result.activityState(2);
+            result.enabled(true);
         },
         resumeTimer:function() {
             result.timer.start(result.timer.lap());
             result.activityState(1);
+            result.enabled(false);
         },
         stopTimer: function() {
             result.timer.stop();
             result.elapsed(0);
-            result.value = setTime(result.elapsed());
             result.activityState(0);
-            result.runningTime(0);
-            result.getDisplayValue();
+            result.duration(getDuration(0));
+            result.enabled(true);
 
         },
         toData: function() {
@@ -121,11 +157,13 @@ var Square = function (options) {
                 Id: result.id(),
                 Name: result.name(),
                 ActivityState: result.activityState(),
-                StartDate:result.startDate()
+                StartDate: result.startDate(),
+                Duration:result.duration()
             };
         }
 
     };
+   
     result.init();
     return result;
 }

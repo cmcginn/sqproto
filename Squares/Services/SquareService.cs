@@ -74,7 +74,7 @@ namespace Squares.Services
                     //allow reset activity to be restarted but keep state if it is not
                     if (us.ActivityState == (int) ActivityStateTypes.Stopped)
                         userSquareModel.ActivityState = ActivityStateTypes.None;
-                    userSquareModel.RunningTime = us.RunningTime;
+                    userSquareModel.Duration  = Duration.FromMS(us.RunningTime);
                     result.UserSquares.Add(userSquareModel);
                 });
            
@@ -96,8 +96,13 @@ namespace Squares.Services
                     if (lastActivity.ActivityState == (int) ActivityStateTypes.Started)
                     {
                         lastActivity.ActivityState = (int) ActivityStateTypes.Paused;
-                        lastActivity.ElapsedMilliseconds = squareModel.Elapsed;
-                        us.RunningTime += squareModel.Elapsed;
+                        long elapsed = 0;
+                        elapsed =
+                            (long)
+                                (lastActivity.StartUtc.AddMilliseconds(squareModel.Duration.Milliseconds) -
+                                 lastActivity.StartUtc).TotalMilliseconds;
+                        lastActivity.ElapsedMilliseconds = elapsed;
+                        us.RunningTime += elapsed;
                         us.ActivityState = lastActivity.ActivityState;
                     }
                 }
@@ -188,7 +193,7 @@ namespace Squares.Services
                 Elapsed = 0,
                 Id = userSquare.Id,
                 Name = userSquare.DisplayName,
-                RunningTime = userSquare.RunningTime,
+                Duration=Duration.FromMS(userSquare.RunningTime),
                 Visible=!userSquare.Hidden
             };
             return result;
