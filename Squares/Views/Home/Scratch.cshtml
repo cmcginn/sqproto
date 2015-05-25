@@ -27,7 +27,7 @@
             </table>
         </div>
         <div class="col-sm-12">
-            <button class="btn btn-block btn-default" data-bind="text:timerButtonDisplay,click:onTimerButtonClick"></button>
+            <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
         </div>
     </div>
 
@@ -41,115 +41,92 @@
     <script>
         var viewModel = null;
 
-        function toModel(s) {
-
-            return {
-                id: s.Id,
-                activityId:s.UserSquareActivityId,
-                name: s.Name,
-                time: 0,
-                state: s.ActivityState
-            }
-        }
-
-        function fromModel(s) {
-            return {
-                Id: s.id(),
-                Name: s.name(),
-                ActivityState: s.state(),
-                Elapsed: s.elapsed(),
-                Milliseconds: s.milliseconds(),
-                UserSquareActivityId:s.activityId()
-            }
-        }
 
         function getSquares() {
-            var vm = { userSquares: [] };
             $.get(rootPath + 'api/Square', function(r, s) {
 
+                var vm = { userSquares: [] };
                 for (var i = 0; i < r.UserSquares.length; i++) {
-                    vm.userSquares.push(new Square(toModel(r.UserSquares[i])));
+                    var s = new Square(r.UserSquares[i]);
+                    vm.userSquares.push(s);
+
                 }
+
                 viewModel = ko.mapping.fromJS(vm);
                 ko.applyBindings(viewModel);
             });
-
-            $(document).on('timerButtonClicked', saveSquares);
         }
 
-        function saveSquares() {
-            var d = { UserSquares: [] };
-            for (var i = 0; i < viewModel.userSquares().length; i++) {
-                d.UserSquares.push(fromModel(viewModel.userSquares()[i]));
-            }
-            $.post(rootPath + 'api/Square', d, function(r, s) {
-
-            });
-        }
-
-        var viewModel = null;
         var data = {
-            userSquares: [
-                { id: '742e0d12-2512-4896-a544-4e0ee9da149f', name: 'Square1', time: 0, state: 0 }
+            UserSquares: [
+                { Id: '742e0d12-2512-4896-a544-4e0ee9da149f', ParentId: '83A714A2-3752-4086-B42C-038D6CD7B1F7', Name: 'Square1', RunningTime: 69187, ActivityState: 0 }
             ]
         };
 
         function Square(options) {
-            var settings = options || {};
-        }
+            var postPath = rootPath + 'api/TimerAction';
 
-        function Square(options) {
-            var settings = options || {};
-
-            function getDuration(ms) {
-                var d = common.getDuration(ms);
-                result.duration().days(d.days);
-                result.duration().hours(d.hours);
-                result.duration().minutes(d.minutes);
-                result.duration().seconds(d.seconds);
+            function toTimerActionModel(state) {
+                return {
+                    Time: new Date().getTime(),
+                    Elapsed: result.displayTime() + result.timer.lap(),
+                    ActivityState: state,
+                    Id: result.id(),
+                    ParentId: result.parentId()
+                };
             }
 
+            var settings = options || {};
             var result = {
-                id: ko.observable(settings.id),
-                activityId:ko.observable(settings.activityId),
-                state: ko.observable(settings.state),
-                name: ko.observable(settings.name),
-                time: ko.observable(settings.time),
-                elapsed: ko.observable(0),
-                milliseconds:ko.observable(new Date().getTime()),
-                timerButtonDisplay: ko.observable('Start'),
+                id: ko.observable(settings.UserSquareActivityId),
+                parentId: ko.observable(settings.Id),
+                displayTime: ko.observable(settings.RunningTime),
                 duration: ko.observable({
                     days: ko.observable(0),
                     hours: ko.observable(0),
                     minutes: ko.observable(0),
                     seconds: ko.observable(0),
-                    millseconds:ko.observable(0),
+                    milliseconds: ko.observable(0)
                 }),
+                state: ko.observable(settings.ActivityState),
                 timer: null,
-                init: function() {
-                    result.timer = new Tock({ interval: 1000, callback: result.onTick });
-                    getDuration(result.time());
-                },
                 startTimer: function() {
-                    //result.started(new Date().getTime() - result.time());
                     result.timer.start();
-                    result.state(1);
-                    result.timerButtonDisplay('Pause');
+                    $.post(postPath, toTimerActionModel(1, 0), function(r) {
+                        result.id(r.Id);
+                        result.state(r.ActivityState);
+                    });
+
                 },
                 pauseTimer: function() {
                     result.timer.pause();
-                    result.state(2);
-                    result.timerButtonDisplay('Resume');
+                    $.post(postPath, toTimerActionModel(2, 0), function(r) {
+                        result.id(r.Id);
+                        result.state(r.ActivityState);
+                    });
                 },
-                resumeTimer: function () {
-                    //  result.started(new Date().getTime() - result.time());
-                    var tt = result.timer.lap();
-                    result.timer.pause();
-                    result.state(1);
-                    result.timerButtonDisplay('Pause');
+                resumeTimer: function() {
+                    if (!result.timer.go) {
+                        result.timer.start();
+                        result.displayTime(0);
+                    } else
+                        result.timer.pause();
+                    $.post(postPath, toTimerActionModel(1, 0), function(r) {
+                        result.id(r.Id);
+                        result.state(r.ActivityState);
+                    });
                 },
-                onTimerButtonClick: function () {
-                    result.milliseconds(new Date().getTime());
+                init: function() {
+                    var ms = result.displayTime();
+                    var d = common.getDuration(ms);
+                    result.duration().days(d.days);
+                    result.duration().hours(d.hours);
+                    result.duration().minutes(d.minutes);
+                    result.duration().seconds(d.seconds);
+                    result.duration().milliseconds(d.milliseconds);
+                    result.timer = new Tock({ interval: 1000, callback: result.onTick });
+                },
+                onTimerButtonClick: function() {
                     switch (result.state()) {
                     case 0:
                         result.startTimer();
@@ -158,37 +135,60 @@
                         result.pauseTimer();
                         break;
                     case 2:
-                        result.startTimer();
+                        result.resumeTimer();
                         break;
                     default:
                         break;
                     }
-                    $.event.trigger({ type: 'timerButtonClicked', args: result, time: new Date() });
                 },
-                onTick: function () {
-                    result.elapsed(result.timer.lap());
-                    getDuration(result.elapsed());
-                },
-
                 onDurationEdit: function() {
-
-                    result.timer.stop();
+                    if (result.state() != 0)
+                        result.timer.stop();
                     var d = 0;
                     d += Number(result.duration().days()) * 86400000;
                     d += Number(result.duration().hours()) * 3600000;
                     d += Number(result.duration().minutes()) * 60000;
                     d += Number(result.duration().seconds()) * 1000;
-                    result.time(d);
-                    result.timer.start(result.time());
-                    //result.started(new Date().getTime() - result.time());
+                    result.displayTime(d);
+                    if (result.state() != 0)
+                        result.timer.start();
+
+                },
+                onTick: function(e) {
+                    var ms = result.timer.lap() + result.displayTime();
+                    var d = common.getDuration(ms);
+                    result.duration().days(d.days);
+                    result.duration().hours(d.hours);
+                    result.duration().minutes(d.minutes);
+                    result.duration().seconds(d.seconds);
+                    result.duration().milliseconds(d.milliseconds);
+
                 }
-                
+
 
             };
+            result.timerButtonDisplay = ko.computed(function() {
+                var r = '';
+                switch (result.state()) {
+                case 0:
+                    r = 'Start';
+                    break;
+                case 1:
+                    r = 'Pause';
+                    break;
+                case 2:
+                    r = 'Resume';
+                    break;
+                default:
+                    break;
 
+                }
+                return r;
+            }, this);
             result.init();
             return result;
         }
+
 
         $(function() {
             getSquares();

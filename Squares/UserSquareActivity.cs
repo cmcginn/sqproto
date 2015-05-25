@@ -20,7 +20,6 @@ namespace Squares
         public Nullable<System.DateTime> LastUpdatedUtc { get; set; }
         public long Elapsed { get; set; }
         public long Milliseconds { get; set; }
-        public int ActivityState { get; set; }
     
         public virtual UserSquare UserSquare { get; set; }
     }
