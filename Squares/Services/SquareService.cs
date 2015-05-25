@@ -72,7 +72,7 @@ namespace Squares.Services
                         if (us.ActivityState == (int)ActivityStateTypes.Paused)
                         {
                             userSquareModel.UserSquareActivityId = lastActivity.Id;
-                            userSquareModel.RunningTime = lastActivity.Elapsed;
+                            userSquareModel.Elapsed = lastActivity.Elapsed;
 
                         }
                     }
@@ -287,31 +287,31 @@ namespace Squares.Services
         {
             var userSquare = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.ParentId);
             var userSquareActivity = _context.UserSquareActivities.SingleOrDefault(x => x.Id == model.Id);
-            if (model.ActivityState == ActivityStateTypes.Running)
+            if (userSquareActivity != null)
             {
-                if (userSquareActivity == null)
-                {
-                    userSquareActivity = new UserSquareActivity
-                    {
-                        UserSquareId = model.ParentId,
-                        CreatedOnUtc = System.DateTime.UtcNow,
-                        Milliseconds = model.Time,
-                        Id = model.Id,
-                        Elapsed = 0
-                    };
-                    userSquare.ActivityState = (int) ActivityStateTypes.Running;
-                    model.ParentId = userSquare.Id;
-                    _context.UserSquareActivities.Add(userSquareActivity);
-                    _context.SaveChanges();
-                }
-                else
-                {
-                    userSquare.ActivityState = (int)model.ActivityState;
-                    userSquareActivity.Elapsed = model.Elapsed;
-                    userSquareActivity.LastUpdatedUtc = System.DateTime.UtcNow;
-                    _context.SaveChanges();
-                }
+                userSquare.ActivityState = (int)model.ActivityState;
+                userSquareActivity.Elapsed = model.Elapsed;
+
+                userSquareActivity.LastUpdatedUtc = System.DateTime.UtcNow;
+                model.ParentId = userSquare.Id;
+                _context.SaveChanges();
             }
+            else if (model.ActivityState == ActivityStateTypes.Running)
+            {
+                userSquareActivity = new UserSquareActivity
+                {
+                    UserSquareId = model.ParentId,
+                    CreatedOnUtc = System.DateTime.UtcNow,
+                    Milliseconds = model.Time,
+                    Id = model.Id,
+                    Elapsed = 0
+                };
+                userSquare.ActivityState = (int)ActivityStateTypes.Running;
+                model.ParentId = userSquare.Id;
+                _context.UserSquareActivities.Add(userSquareActivity);
+                _context.SaveChanges();
+            }
+
             
 
         }

@@ -69,7 +69,7 @@
             function toTimerActionModel(state) {
                 return {
                     Time: new Date().getTime(),
-                    Elapsed: result.displayTime() + result.timer.lap(),
+                    Elapsed:result.timer.lap(),
                     ActivityState: state,
                     Id: result.id(),
                     ParentId: result.parentId()
@@ -80,7 +80,7 @@
             var result = {
                 id: ko.observable(settings.UserSquareActivityId),
                 parentId: ko.observable(settings.Id),
-                displayTime: ko.observable(settings.RunningTime),
+                elapsed: ko.observable(settings.Elapsed),
                 duration: ko.observable({
                     days: ko.observable(0),
                     hours: ko.observable(0),
@@ -91,7 +91,7 @@
                 state: ko.observable(settings.ActivityState),
                 timer: null,
                 startTimer: function() {
-                    result.timer.start();
+                    result.timer.start(result.elapsed());
                     $.post(postPath, toTimerActionModel(1, 0), function(r) {
                         result.id(r.Id);
                         result.state(r.ActivityState);
@@ -106,9 +106,8 @@
                     });
                 },
                 resumeTimer: function() {
-                    if (!result.timer.go) {
-                        result.timer.start();
-                        result.displayTime(0);
+                    if (result.timer.pause_time==0) {
+                        result.timer.start(result.elapsed());
                     } else
                         result.timer.pause();
                     $.post(postPath, toTimerActionModel(1, 0), function(r) {
@@ -117,7 +116,7 @@
                     });
                 },
                 init: function() {
-                    var ms = result.displayTime();
+                    var ms = result.elapsed();
                     var d = common.getDuration(ms);
                     result.duration().days(d.days);
                     result.duration().hours(d.hours);
@@ -149,13 +148,13 @@
                     d += Number(result.duration().hours()) * 3600000;
                     d += Number(result.duration().minutes()) * 60000;
                     d += Number(result.duration().seconds()) * 1000;
-                    result.displayTime(d);
+                    result.elapsed(d);
                     if (result.state() != 0)
                         result.timer.start();
 
                 },
                 onTick: function(e) {
-                    var ms = result.timer.lap() + result.displayTime();
+                    var ms = result.timer.lap();
                     var d = common.getDuration(ms);
                     result.duration().days(d.days);
                     result.duration().hours(d.hours);
