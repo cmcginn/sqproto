@@ -29,6 +29,17 @@
           <Property Name="Elapsed" Type="bigint" Nullable="false" />
           <Property Name="Milliseconds" Type="bigint" Nullable="false" />
         </EntityType>
+        <EntityType Name="UserSquareActivityAction">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="UserSquareActivityId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CreatedOnUtc" Type="datetime" Nullable="false" />
+          <Property Name="Milliseconds" Type="bigint" Nullable="false" />
+          <Property Name="ActivityState" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="255" />
+        </EntityType>
         <Association Name="FK_UserSquareActivity_UserSquare">
           <End Role="UserSquare" Type="Self.UserSquare" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -43,12 +54,31 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_UserSquareActivityAction_UserSquareActivity">
+          <End Role="UserSquareActivity" Type="Self.UserSquareActivity" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="UserSquareActivityAction" Type="Self.UserSquareActivityAction" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserSquareActivity">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserSquareActivityAction">
+              <PropertyRef Name="UserSquareActivityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="SquaresModelStoreContainer">
           <EntitySet Name="UserSquare" EntityType="Self.UserSquare" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserSquareActivity" EntityType="Self.UserSquareActivity" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserSquareActivityAction" EntityType="Self.UserSquareActivityAction" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_UserSquareActivity_UserSquare" Association="Self.FK_UserSquareActivity_UserSquare">
             <End Role="UserSquare" EntitySet="UserSquare" />
             <End Role="UserSquareActivity" EntitySet="UserSquareActivity" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserSquareActivityAction_UserSquareActivity" Association="Self.FK_UserSquareActivityAction_UserSquareActivity">
+            <End Role="UserSquareActivity" EntitySet="UserSquareActivity" />
+            <End Role="UserSquareActivityAction" EntitySet="UserSquareActivityAction" />
           </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -61,6 +91,11 @@
           <AssociationSet Name="FK_UserSquareActivity_UserSquare" Association="SquaresModel.FK_UserSquareActivity_UserSquare">
             <End Role="UserSquare" EntitySet="UserSquares" />
             <End Role="UserSquareActivity" EntitySet="UserSquareActivities" />
+          </AssociationSet>
+          <EntitySet Name="UserSquareActivityActions" EntityType="SquaresModel.UserSquareActivityAction" />
+          <AssociationSet Name="FK_UserSquareActivityAction_UserSquareActivity" Association="SquaresModel.FK_UserSquareActivityAction_UserSquareActivity">
+            <End Role="UserSquareActivity" EntitySet="UserSquareActivities" />
+            <End Role="UserSquareActivityAction" EntitySet="UserSquareActivityActions" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="UserSquare">
@@ -88,6 +123,7 @@
           <Property Name="Elapsed" Type="Int64" Nullable="false" />
           <Property Name="Milliseconds" Type="Int64" Nullable="false" />
           <NavigationProperty Name="UserSquare" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquareActivity" ToRole="UserSquare" />
+          <NavigationProperty Name="UserSquareActivityActions" Relationship="SquaresModel.FK_UserSquareActivityAction_UserSquareActivity" FromRole="UserSquareActivity" ToRole="UserSquareActivityAction" />
         </EntityType>
         <Association Name="FK_UserSquareActivity_UserSquare">
           <End Type="SquaresModel.UserSquare" Role="UserSquare" Multiplicity="1">
@@ -100,6 +136,32 @@
             </Principal>
             <Dependent Role="UserSquareActivity">
               <PropertyRef Name="UserSquareId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserSquareActivityAction">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UserSquareActivityId" Type="Guid" Nullable="false" />
+          <Property Name="CreatedOnUtc" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Milliseconds" Type="Int64" Nullable="false" />
+          <Property Name="ActivityState" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="UserSquareActivity" Relationship="SquaresModel.FK_UserSquareActivityAction_UserSquareActivity" FromRole="UserSquareActivityAction" ToRole="UserSquareActivity" />
+        </EntityType>
+        <Association Name="FK_UserSquareActivityAction_UserSquareActivity">
+          <End Type="SquaresModel.UserSquareActivity" Role="UserSquareActivity" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="SquaresModel.UserSquareActivityAction" Role="UserSquareActivityAction" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserSquareActivity">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserSquareActivityAction">
+              <PropertyRef Name="UserSquareActivityId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -131,6 +193,18 @@
                 <ScalarProperty Name="LastUpdatedUtc" ColumnName="LastUpdatedUtc" />
                 <ScalarProperty Name="CreatedOnUtc" ColumnName="CreatedOnUtc" />
                 <ScalarProperty Name="UserSquareId" ColumnName="UserSquareId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserSquareActivityActions">
+            <EntityTypeMapping TypeName="SquaresModel.UserSquareActivityAction">
+              <MappingFragment StoreEntitySet="UserSquareActivityAction">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ActivityState" ColumnName="ActivityState" />
+                <ScalarProperty Name="Milliseconds" ColumnName="Milliseconds" />
+                <ScalarProperty Name="CreatedOnUtc" ColumnName="CreatedOnUtc" />
+                <ScalarProperty Name="UserSquareActivityId" ColumnName="UserSquareActivityId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

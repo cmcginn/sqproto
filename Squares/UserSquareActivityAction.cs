@@ -12,21 +12,15 @@ namespace Squares
     using System;
     using System.Collections.Generic;
     
-    public partial class UserSquareActivity
+    public partial class UserSquareActivityAction
     {
-        public UserSquareActivity()
-        {
-            this.UserSquareActivityActions = new HashSet<UserSquareActivityAction>();
-        }
-    
         public System.Guid Id { get; set; }
-        public System.Guid UserSquareId { get; set; }
+        public System.Guid UserSquareActivityId { get; set; }
         public System.DateTime CreatedOnUtc { get; set; }
-        public Nullable<System.DateTime> LastUpdatedUtc { get; set; }
-        public long Elapsed { get; set; }
         public long Milliseconds { get; set; }
+        public int ActivityState { get; set; }
+        public string Description { get; set; }
     
-        public virtual UserSquare UserSquare { get; set; }
-        public virtual ICollection<UserSquareActivityAction> UserSquareActivityActions { get; set; }
+        public virtual UserSquareActivity UserSquareActivity { get; set; }
     }
 }

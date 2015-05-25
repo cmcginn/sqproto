@@ -283,6 +283,19 @@ namespace Squares.Services
             _context.SaveChanges();
         }
 
+        void SaveUserSquareActivityActionForTimer(UserSquareActivity activity,ActivityStateTypes state)
+        {
+            var target = new UserSquareActivityAction
+            {
+                ActivityState = (int) state,
+                CreatedOnUtc = System.DateTime.UtcNow,
+                Id = Guid.NewGuid(),
+                UserSquareActivityId = activity.Id,
+                Milliseconds = activity.Milliseconds + activity.Elapsed
+            };
+            _context.UserSquareActivityActions.Add(target);
+            _context.SaveChanges();
+        }
         void SaveUserSquareActivityForTimer(string userId, TimerActionModel model)
         {
             var userSquare = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.ParentId);
@@ -311,8 +324,9 @@ namespace Squares.Services
                 _context.UserSquareActivities.Add(userSquareActivity);
                 _context.SaveChanges();
             }
+            if (userSquareActivity != null)
+                SaveUserSquareActivityActionForTimer(userSquareActivity, model.ActivityState);
 
-            
 
         }
         public void HandleTimerActionModel(string userId, TimerActionModel model)

@@ -27,5 +27,6 @@ namespace Squares
     
         public virtual DbSet<UserSquare> UserSquares { get; set; }
         public virtual DbSet<UserSquareActivity> UserSquareActivities { get; set; }
+        public virtual DbSet<UserSquareActivityAction> UserSquareActivityActions { get; set; }
     }
 }

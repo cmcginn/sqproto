@@ -8,6 +8,8 @@
         <EntityTypeShape EntityType="SquaresModel.UserSquare" Width="1.5" PointX="0.75" PointY="1" />
         <EntityTypeShape EntityType="SquaresModel.UserSquareActivity" Width="1.5" PointX="3" PointY="1.25" />
         <AssociationConnector Association="SquaresModel.FK_UserSquareActivity_UserSquare" />
+        <EntityTypeShape EntityType="SquaresModel.UserSquareActivityAction" Width="1.5" PointX="5.25" PointY="1.375" />
+        <AssociationConnector Association="SquaresModel.FK_UserSquareActivityAction_UserSquareActivity" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
