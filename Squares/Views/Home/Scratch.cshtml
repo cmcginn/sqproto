@@ -1,208 +1,234 @@
 ﻿<div class="row" data-bind="foreach:userSquares">
     <div class="col-sm-4">
-        <div class="col-sm-12">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th><small>Days</small></th>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-sm-12 text-center">
+                    <div class="input-group">
+                        <input type="text" data-bind="value:name" class="form-control" />
+                        <div class="input-group-addon">
+                            <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><small>Days</small></th>
 
 
-                        <th><small>Hours</small></th>
+                                <th><small>Hours</small></th>
 
 
-                        <th><small>Minutes</small></th>
+                                <th><small>Minutes</small></th>
 
 
-                        <th><small>Seconds</small></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
-                        <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
-                        <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
-                        <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="col-sm-12">
-            <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
+                                <th><small>Seconds</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
+                </div>
+            </div>
         </div>
     </div>
 
 
 </div>
 
-@section scripts{
-    
-    <script src="~/Scripts/app/common.js"></script>
-    <script src="~/Scripts/vendor/tock.js"></script>
-    <script>
-        var viewModel = null;
+
+        @section scripts{
+
+            <script src="~/Scripts/app/common.js"></script>
+            <script src="~/Scripts/vendor/tock.js"></script>
+            <script>
+                var viewModel = null;
 
 
-        function getSquares() {
-            $.get(rootPath + 'api/Square', function(r, s) {
+                function getSquares() {
+                    $.get(rootPath + 'api/Square', function(r, s) {
 
-                var vm = { userSquares: [] };
-                for (var i = 0; i < r.UserSquares.length; i++) {
-                    var s = new Square(r.UserSquares[i]);
-                    vm.userSquares.push(s);
+                        var vm = { userSquares: [] };
+                        for (var i = 0; i < r.UserSquares.length; i++) {
+                            var s = new Square(r.UserSquares[i]);
+                            vm.userSquares.push(s);
 
+                        }
+
+                        viewModel = ko.mapping.fromJS(vm);
+                        ko.applyBindings(viewModel);
+                    });
                 }
 
-                viewModel = ko.mapping.fromJS(vm);
-                ko.applyBindings(viewModel);
-            });
-        }
-
-        var data = {
-            UserSquares: [
-                { Id: '742e0d12-2512-4896-a544-4e0ee9da149f', ParentId: '83A714A2-3752-4086-B42C-038D6CD7B1F7', Name: 'Square1', RunningTime: 69187, ActivityState: 0 }
-            ]
-        };
-
-        function Square(options) {
-            var postPath = rootPath + 'api/TimerAction';
-
-            function toTimerActionModel(state) {
-                return {
-                    Time: new Date().getTime(),
-                    Elapsed:result.timer.lap(),
-                    ActivityState: state,
-                    Id: result.id(),
-                    ParentId: result.parentId()
+                var data = {
+                    UserSquares: [
+                        { Id: '742e0d12-2512-4896-a544-4e0ee9da149f', ParentId: '83A714A2-3752-4086-B42C-038D6CD7B1F7', Name: 'Square1', RunningTime: 69187, ActivityState: 0 }
+                    ]
                 };
-            }
 
-            var settings = options || {};
-            var result = {
-                id: ko.observable(settings.UserSquareActivityId),
-                parentId: ko.observable(settings.Id),
-                elapsed: ko.observable(settings.Elapsed),
-                duration: ko.observable({
-                    days: ko.observable(0),
-                    hours: ko.observable(0),
-                    minutes: ko.observable(0),
-                    seconds: ko.observable(0),
-                    milliseconds: ko.observable(0)
-                }),
-                state: ko.observable(settings.ActivityState),
-                timer: null,
-                startTimer: function() {
-                    result.timer.start(result.elapsed());
-                    $.post(postPath, toTimerActionModel(1, 0), function(r) {
-                        result.id(r.Id);
-                        result.state(r.ActivityState);
-                    });
+                function Square(options) {
+                    var postPath = rootPath + 'api/TimerAction';
 
-                },
-                pauseTimer: function() {
-                    result.timer.pause();
-                    $.post(postPath, toTimerActionModel(2, 0), function(r) {
-                        result.id(r.Id);
-                        result.state(r.ActivityState);
-                    });
-                },
-                resumeTimer: function() {
-                    if (result.timer.pause_time==0) {
-                        result.timer.start(result.elapsed());
-                    } else
-                        result.timer.pause();
-                    $.post(postPath, toTimerActionModel(1, 0), function(r) {
-                        result.id(r.Id);
-                        result.state(r.ActivityState);
-                    });
-                },
-                init: function() {
-                    var ms = result.elapsed();
-                    var d = common.getDuration(ms);
-                    result.duration().days(d.days);
-                    result.duration().hours(d.hours);
-                    result.duration().minutes(d.minutes);
-                    result.duration().seconds(d.seconds);
-                    result.duration().milliseconds(d.milliseconds);
-                    result.timer = new Tock({ interval: 1000, callback: result.onTick });
-                    if (result.state() == 1)
-                        result.timer.start(result.elapsed());
-                },
-                onTimerButtonClick: function() {
-                    switch (result.state()) {
-                    case 0:
-                        result.startTimer();
-                        break;
-                    case 1:
-                        result.pauseTimer();
-                        break;
-                    case 2:
-                        result.resumeTimer();
-                        break;
-                    default:
-                        break;
+                    function toTimerActionModel(state) {
+                        return {
+                            Time: new Date().getTime(),
+                            Elapsed: result.timer.lap(),
+                            ActivityState: state,
+                            Id: result.activityId(),
+                            ParentId: result.id()
+                        };
                     }
-                },
-                onDurationEdit: function() {
-                    if (result.state() != 0)
-                        result.timer.stop();
-                    var d = 0;
-                    d += Number(result.duration().days()) * 86400000;
-                    d += Number(result.duration().hours()) * 3600000;
-                    d += Number(result.duration().minutes()) * 60000;
-                    d += Number(result.duration().seconds()) * 1000;
-                    result.elapsed(d);
-                    if (result.state() != 0)
-                        result.timer.start();
 
-                },
-                onTick: function(e) {
-                    var ms = result.timer.lap();
-                    var d = common.getDuration(ms);
-                    result.duration().days(d.days);
-                    result.duration().hours(d.hours);
-                    result.duration().minutes(d.minutes);
-                    result.duration().seconds(d.seconds);
-                    result.duration().milliseconds(d.milliseconds);
+                    var settings = options || {};
+                    var result = {
+                        id: ko.observable(settings.Id),
+                        activityId: ko.observable(settings.UserSquareActivityId),
+                        elapsed: ko.observable(settings.Elapsed),
+                        duration: ko.observable({
+                            days: ko.observable(0),
+                            hours: ko.observable(0),
+                            minutes: ko.observable(0),
+                            seconds: ko.observable(0),
+                            milliseconds: ko.observable(0)
+                        }),
+                        name:ko.observable(settings.Name),
+                        state: ko.observable(settings.ActivityState),
+                        timer: null,
+                        startTimer: function() {
+                            result.timer.start(result.elapsed());
+                            $.post(postPath, toTimerActionModel(1, 0), function(r) {
+                                result.activityId(r.Id);
+                                result.state(r.ActivityState);
+                            });
 
+                        },
+                        pauseTimer: function() {
+                            result.timer.pause();
+                            $.post(postPath, toTimerActionModel(2, 0), function(r) {
+                                result.activityId(r.Id);
+                                result.state(r.ActivityState);
+                            });
+                        },
+                        resumeTimer: function() {
+                            if (result.timer.pause_time == 0) {
+                                result.timer.start(result.elapsed());
+                            } else
+                                result.timer.pause();
+                            $.post(postPath, toTimerActionModel(1, 0), function(r) {
+                                result.activityId(r.Id);
+                                result.state(r.ActivityState);
+                            });
+                        },
+                        toData:function() {
+                            return {
+                                UserSquareActivityId: result.activityId(),
+                                Id: result.id(),
+                                ActivityState: result.state(),
+                                Elapsed: result.timer.lap(),
+                                Time: new Date().getTime(),
+                                Name:result.name()
+                            };
+                        },
+                        init: function() {
+                            var ms = result.elapsed();
+                            var d = common.getDuration(ms);
+                            result.duration().days(d.days);
+                            result.duration().hours(d.hours);
+                            result.duration().minutes(d.minutes);
+                            result.duration().seconds(d.seconds);
+                            result.duration().milliseconds(d.milliseconds);
+                            result.timer = new Tock({ interval: 1000, callback: result.onTick });
+                            if (result.state() == 1)
+                                result.timer.start(result.elapsed());
+                        },
+                        onDurationEdit: function() {
+                            if (result.state() != 0)
+                                result.timer.stop();
+                            var d = 0;
+                            d += Number(result.duration().days()) * 86400000;
+                            d += Number(result.duration().hours()) * 3600000;
+                            d += Number(result.duration().minutes()) * 60000;
+                            d += Number(result.duration().seconds()) * 1000;
+                            result.elapsed(d);
+                            if (result.state() != 0)
+                                result.timer.start();
+
+                        },
+                        onRenameClick: function() {
+                            $.post(rootPath + 'Home/Rename', result.toData(), function(r, s) {});
+                        },
+                        onTick: function(e) {
+                            var ms = result.timer.lap();
+                            var d = common.getDuration(ms);
+                            result.duration().days(d.days);
+                            result.duration().hours(d.hours);
+                            result.duration().minutes(d.minutes);
+                            result.duration().seconds(d.seconds);
+                            result.duration().milliseconds(d.milliseconds);
+
+                        },
+                        onTimerButtonClick: function() {
+                            switch (result.state()) {
+                            case 0:
+                                result.startTimer();
+                                break;
+                            case 1:
+                                result.pauseTimer();
+                                break;
+                            case 2:
+                                result.resumeTimer();
+                                break;
+                            default:
+                                break;
+                            }
+                        },
+
+
+                    };
+                    result.timerButtonDisplay = ko.computed(function() {
+                        var r = '';
+                        switch (result.state()) {
+                        case 0:
+                            r = 'Start';
+                            break;
+                        case 1:
+                            r = 'Pause';
+                            break;
+                        case 2:
+                            r = 'Resume';
+                            break;
+                        default:
+                            break;
+
+                        }
+                        return r;
+                    }, this);
+                    result.init();
+                    return result;
                 }
 
 
-            };
-            result.timerButtonDisplay = ko.computed(function() {
-                var r = '';
-                switch (result.state()) {
-                case 0:
-                    r = 'Start';
-                    break;
-                case 1:
-                    r = 'Pause';
-                    break;
-                case 2:
-                    r = 'Resume';
-                    break;
-                default:
-                    break;
+                $(function() {
+                    getSquares();
+                    //var vm = { userSquares: [] };
+                    //for (var i = 0; i < data.userSquares.length; i++) {
+                    //    var s = new Square(data.userSquares[i]);
+                    //    vm.userSquares.push(s);
 
-                }
-                return r;
-            }, this);
-            result.init();
-            return result;
+                    //}
+
+                    //viewModel = ko.mapping.fromJS(vm);
+                    //ko.applyBindings(viewModel);
+                });
+            </script>
         }
-
-
-        $(function() {
-            getSquares();
-            //var vm = { userSquares: [] };
-            //for (var i = 0; i < data.userSquares.length; i++) {
-            //    var s = new Square(data.userSquares[i]);
-            //    vm.userSquares.push(s);
-
-            //}
-
-            //viewModel = ko.mapping.fromJS(vm);
-            //ko.applyBindings(viewModel);
-        });
-    </script>
-
-}
