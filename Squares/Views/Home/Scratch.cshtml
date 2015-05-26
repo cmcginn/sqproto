@@ -124,6 +124,8 @@
                     result.duration().seconds(d.seconds);
                     result.duration().milliseconds(d.milliseconds);
                     result.timer = new Tock({ interval: 1000, callback: result.onTick });
+                    if (result.state() == 1)
+                        result.timer.start(result.elapsed());
                 },
                 onTimerButtonClick: function() {
                     switch (result.state()) {

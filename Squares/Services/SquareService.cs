@@ -51,7 +51,8 @@ namespace Squares.Services
 
             userSquares.OrderBy(x => x.DisplayOrder).ToList().ForEach(us =>
             {
-
+                var thisDate=
+                System.DateTime.UtcNow;
                 var userSquareModel = new UserSquareViewModel
                 {
                     Id = us.Id,
@@ -69,11 +70,18 @@ namespace Squares.Services
 
                     if (lastActivity != null)
                     {
+                        userSquareModel.UserSquareActivityId = lastActivity.Id;
                         if (us.ActivityState == (int)ActivityStateTypes.Paused)
                         {
-                            userSquareModel.UserSquareActivityId = lastActivity.Id;
+                            
                             userSquareModel.Elapsed = lastActivity.Elapsed;
 
+                        }
+                        else if (us.ActivityState == (int) ActivityStateTypes.Running)
+                        {
+
+                            Resume(userSquareModel, thisDate);
+                            //_context.SaveChanges();
                         }
                     }
 
@@ -291,7 +299,7 @@ namespace Squares.Services
                 CreatedOnUtc = System.DateTime.UtcNow,
                 Id = Guid.NewGuid(),
                 UserSquareActivityId = activity.Id,
-                Milliseconds = activity.Milliseconds + activity.Elapsed
+                Milliseconds = activity.Elapsed
             };
             _context.UserSquareActivityActions.Add(target);
             _context.SaveChanges();
@@ -332,6 +340,21 @@ namespace Squares.Services
         public void HandleTimerActionModel(string userId, TimerActionModel model)
         {
             SaveUserSquareActivityForTimer(userId, model);
+        }
+
+        void Resume(UserSquareViewModel model,DateTime now)
+        {
+            var epoch = (long)(now - System.DateTime.Parse("1/1/1970")).TotalMilliseconds;
+            var lastStarted =
+                _context.UserSquareActivityActions.Where(x => x.UserSquareActivityId == model.UserSquareActivityId)
+                    .OrderBy(x => x.CreatedOnUtc)
+                    .ToList()
+                    .Last();
+            var usa = _context.UserSquareActivities.Single(x => x.Id == model.UserSquareActivityId);
+            model.Elapsed = (epoch - usa.Milliseconds - lastStarted.Milliseconds);
+            
+
+
         }
     }
 
