@@ -24,7 +24,6 @@ namespace Squares
         public string DisplayName { get; set; }
         public int DisplayOrder { get; set; }
         public System.DateTime CreratedOnUtc { get; set; }
-        public long RunningTime { get; set; }
         public int ActivityState { get; set; }
         public bool Hidden { get; set; }
     

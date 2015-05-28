@@ -28,7 +28,6 @@ namespace Squares.Services
                     DisplayOrder = i,
                     DisplayName = String.Format("Square {0}", i + 1),
                     Id = Guid.NewGuid(),
-                    RunningTime = 0,
                     ActivityState = (int)ActivityStateTypes.None,
                     Hidden = false
 
@@ -158,20 +157,20 @@ namespace Squares.Services
             return result;
         }
 
-        public void ResetTimer(string userId, Guid id)
-        {
-            var target = _context.UserSquares.Where(x => x.UserId == userId && x.Id == id).SingleOrDefault();
-            if (target != null)
-            {
-                //var lastActivity =
-                //    target.UserSquareActivities.OrderBy(x => x.BeginMilliseconds).Last();
-                //lastActivity.ActivityState =
-                //        (int)ActivityStateTypes.Stopped;
-                //target.ActivityState = lastActivity.ActivityState;
-                target.RunningTime = 0;
-                _context.SaveChanges();
-            }
-        }
+        //public void ResetTimer(string userId, Guid id)
+        //{
+        //    var target = _context.UserSquares.Where(x => x.UserId == userId && x.Id == id).SingleOrDefault();
+        //    if (target != null)
+        //    {
+        //        //var lastActivity =
+        //        //    target.UserSquareActivities.OrderBy(x => x.BeginMilliseconds).Last();
+        //        //lastActivity.ActivityState =
+        //        //        (int)ActivityStateTypes.Stopped;
+        //        //target.ActivityState = lastActivity.ActivityState;
+        //        target.RunningTime = 0;
+        //        _context.SaveChanges();
+        //    }
+        //}
 
         public void RenameSquare(string userId, UserSquareViewModel model)
         {
@@ -193,7 +192,6 @@ namespace Squares.Services
                 ActivityState = (int)ActivityStateTypes.None,
                 CreratedOnUtc = System.DateTime.UtcNow,
                 DisplayOrder = displayOrder += 1,
-                RunningTime = 0,
                 DisplayName = "New Square",
                 Hidden = false
             };
@@ -205,7 +203,6 @@ namespace Squares.Services
                 // BeginMilliseconds = 0,
                 Id = userSquare.Id,
                 Name = userSquare.DisplayName,
-                RunningTime = userSquare.RunningTime,
                 Visible = !userSquare.Hidden
             };
             return result;
@@ -268,7 +265,6 @@ namespace Squares.Services
                 //elappsedTotal += usa.BeginMilliseconds;
 
             });
-            us.RunningTime = elappsedTotal;
             _context.SaveChanges();
         }
 

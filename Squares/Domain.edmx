@@ -14,7 +14,6 @@
           <Property Name="DisplayName" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="DisplayOrder" Type="int" Nullable="false" />
           <Property Name="CreratedOnUtc" Type="datetime" Nullable="false" />
-          <Property Name="RunningTime" Type="bigint" Nullable="false" />
           <Property Name="ActivityState" Type="int" Nullable="false" />
           <Property Name="Hidden" Type="bit" Nullable="false" />
         </EntityType>
@@ -86,32 +85,18 @@
     <edmx:ConceptualModels>
       <Schema Namespace="SquaresModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityContainer Name="SquaresEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="UserSquares" EntityType="SquaresModel.UserSquare" />
           <EntitySet Name="UserSquareActivities" EntityType="SquaresModel.UserSquareActivity" />
-          <AssociationSet Name="FK_UserSquareActivity_UserSquare" Association="SquaresModel.FK_UserSquareActivity_UserSquare">
-            <End Role="UserSquare" EntitySet="UserSquares" />
-            <End Role="UserSquareActivity" EntitySet="UserSquareActivities" />
-          </AssociationSet>
           <EntitySet Name="UserSquareActivityActions" EntityType="SquaresModel.UserSquareActivityAction" />
           <AssociationSet Name="FK_UserSquareActivityAction_UserSquareActivity" Association="SquaresModel.FK_UserSquareActivityAction_UserSquareActivity">
             <End Role="UserSquareActivity" EntitySet="UserSquareActivities" />
             <End Role="UserSquareActivityAction" EntitySet="UserSquareActivityActions" />
           </AssociationSet>
+          <EntitySet Name="UserSquares" EntityType="SquaresModel.UserSquare" />
+          <AssociationSet Name="FK_UserSquareActivity_UserSquare" Association="SquaresModel.FK_UserSquareActivity_UserSquare">
+            <End Role="UserSquare" EntitySet="UserSquares" />
+            <End Role="UserSquareActivity" EntitySet="UserSquareActivities" />
+          </AssociationSet>
         </EntityContainer>
-        <EntityType Name="UserSquare">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="UserId" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="DisplayName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="DisplayOrder" Type="Int32" Nullable="false" />
-          <Property Name="CreratedOnUtc" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="RunningTime" Type="Int64" Nullable="false" />
-          <Property Name="ActivityState" Type="Int32" Nullable="false" />
-          <Property Name="Hidden" Type="Boolean" Nullable="false" />
-          <NavigationProperty Name="UserSquareActivities" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquare" ToRole="UserSquareActivity" />
-        </EntityType>
         <EntityType Name="UserSquareActivity">
           <Key>
             <PropertyRef Name="Id" />
@@ -122,23 +107,9 @@
           <Property Name="LastUpdatedUtc" Type="DateTime" Precision="3" />
           <Property Name="Elapsed" Type="Int64" Nullable="false" />
           <Property Name="Milliseconds" Type="Int64" Nullable="false" />
-          <NavigationProperty Name="UserSquare" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquareActivity" ToRole="UserSquare" />
           <NavigationProperty Name="UserSquareActivityActions" Relationship="SquaresModel.FK_UserSquareActivityAction_UserSquareActivity" FromRole="UserSquareActivity" ToRole="UserSquareActivityAction" />
+          <NavigationProperty Name="UserSquare" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquareActivity" ToRole="UserSquare" />
         </EntityType>
-        <Association Name="FK_UserSquareActivity_UserSquare">
-          <End Type="SquaresModel.UserSquare" Role="UserSquare" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="SquaresModel.UserSquareActivity" Role="UserSquareActivity" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="UserSquare">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="UserSquareActivity">
-              <PropertyRef Name="UserSquareId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="UserSquareActivityAction">
           <Key>
             <PropertyRef Name="Id" />
@@ -165,26 +136,39 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="UserSquare">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="DisplayName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="DisplayOrder" Type="Int32" Nullable="false" />
+          <Property Name="CreratedOnUtc" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ActivityState" Type="Int32" Nullable="false" />
+          <Property Name="Hidden" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="UserSquareActivities" Relationship="SquaresModel.FK_UserSquareActivity_UserSquare" FromRole="UserSquare" ToRole="UserSquareActivity" />
+        </EntityType>
+        <Association Name="FK_UserSquareActivity_UserSquare">
+          <End Type="SquaresModel.UserSquare" Role="UserSquare" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="SquaresModel.UserSquareActivity" Role="UserSquareActivity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserSquare">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserSquareActivity">
+              <PropertyRef Name="UserSquareId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="SquaresModelStoreContainer" CdmEntityContainer="SquaresEntities">
-          <EntitySetMapping Name="UserSquares">
-            <EntityTypeMapping TypeName="SquaresModel.UserSquare">
-              <MappingFragment StoreEntitySet="UserSquare">
-                <ScalarProperty Name="Hidden" ColumnName="Hidden" />
-                <ScalarProperty Name="ActivityState" ColumnName="ActivityState" />
-                <ScalarProperty Name="RunningTime" ColumnName="RunningTime" />
-                <ScalarProperty Name="CreratedOnUtc" ColumnName="CreratedOnUtc" />
-                <ScalarProperty Name="DisplayOrder" ColumnName="DisplayOrder" />
-                <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="UserSquareActivities">
             <EntityTypeMapping TypeName="SquaresModel.UserSquareActivity">
               <MappingFragment StoreEntitySet="UserSquareActivity">
@@ -205,6 +189,19 @@
                 <ScalarProperty Name="Milliseconds" ColumnName="Milliseconds" />
                 <ScalarProperty Name="CreatedOnUtc" ColumnName="CreatedOnUtc" />
                 <ScalarProperty Name="UserSquareActivityId" ColumnName="UserSquareActivityId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserSquares">
+            <EntityTypeMapping TypeName="SquaresModel.UserSquare">
+              <MappingFragment StoreEntitySet="UserSquare">
+                <ScalarProperty Name="Hidden" ColumnName="Hidden" />
+                <ScalarProperty Name="ActivityState" ColumnName="ActivityState" />
+                <ScalarProperty Name="CreratedOnUtc" ColumnName="CreratedOnUtc" />
+                <ScalarProperty Name="DisplayOrder" ColumnName="DisplayOrder" />
+                <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

@@ -26,7 +26,7 @@ namespace Squares
         public long Elapsed { get; set; }
         public long Milliseconds { get; set; }
     
-        public virtual UserSquare UserSquare { get; set; }
         public virtual ICollection<UserSquareActivityAction> UserSquareActivityActions { get; set; }
+        public virtual UserSquare UserSquare { get; set; }
     }
 }

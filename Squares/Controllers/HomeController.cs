@@ -49,13 +49,7 @@ namespace Squares.Controllers
             _service.RenameSquare(User.Identity.GetUserId(), model);
 
         }
-        [HttpPost]
-        public void ResetTimer(Guid id)
-        {
-            _service.ResetTimer(User.Identity.GetUserId(), id);
-        }
-      
-        
+       
         [HttpPost]
         public void HideUserSquare(Guid id)
         {
