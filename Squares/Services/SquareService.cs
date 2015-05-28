@@ -65,12 +65,14 @@ namespace Squares.Services
                 };
                 if (us.UserSquareActivities.Any())
                 {
-
+                    
                     var lastActivity = us.UserSquareActivities.OrderBy(x => x.CreatedOnUtc).ToList().Last();
 
                     if (lastActivity != null)
                     {
-                        userSquareModel.UserSquareActivityId = lastActivity.Id;
+                        if(us.ActivityState != (int)ActivityStateTypes.Stopped)
+                            userSquareModel.UserSquareActivityId = lastActivity.Id;
+
                         if (us.ActivityState == (int)ActivityStateTypes.Paused)
                         {
                             
@@ -87,13 +89,6 @@ namespace Squares.Services
 
 
                 }
-                else
-                {
-                    userSquareModel.UserSquareActivityId = Guid.NewGuid();
-                }
-                //allow reset activity to be restarted but keep state if it is not
-                if (us.ActivityState == (int)ActivityStateTypes.Stopped)
-                    userSquareModel.ActivityState = ActivityStateTypes.None;
 
                 result.UserSquares.Add(userSquareModel);
             });
@@ -315,6 +310,13 @@ namespace Squares.Services
 
                 userSquareActivity.LastUpdatedUtc = System.DateTime.UtcNow;
                 model.ParentId = userSquare.Id;
+                
+                if (model.ActivityState == ActivityStateTypes.Stopped)
+                {
+                    model.Id = Guid.NewGuid();
+                    model.Elapsed = 0;
+                 
+                }
                 _context.SaveChanges();
             }
             else if (model.ActivityState == ActivityStateTypes.Running)
@@ -332,6 +334,7 @@ namespace Squares.Services
                 _context.UserSquareActivities.Add(userSquareActivity);
                 _context.SaveChanges();
             }
+            
             if (userSquareActivity != null)
                 SaveUserSquareActivityActionForTimer(userSquareActivity, model.ActivityState);
 

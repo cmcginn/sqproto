@@ -39,6 +39,9 @@
                 <div class="col-sm-12">
                     <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
                 </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick">Reset</button>
+                </div>
             </div>
         </div>
     </div>
@@ -80,6 +83,7 @@
                     var postPath = rootPath + 'api/TimerAction';
 
                     function toTimerActionModel(state) {
+                        
                         return {
                             Time: new Date().getTime(),
                             Elapsed: result.timer.lap(),
@@ -129,6 +133,22 @@
                                 result.state(r.ActivityState);
                             });
                         },
+                        stopTimer: function () {
+           
+                            result.timer.stop();
+                            $.post(postPath, toTimerActionModel(3, 0), function (r) {
+                                result.activityId(r.Id);
+                                result.state(r.ActivityState);
+                                var d = common.getDuration(0);
+                                result.duration().days(d.days);
+                                result.duration().hours(d.hours);
+                                result.duration().minutes(d.minutes);
+                                result.duration().seconds(d.seconds);
+                                result.duration().milliseconds(d.milliseconds);
+                                result.elapsed(0);
+                            });
+                            
+                        },
                         toData:function() {
                             return {
                                 UserSquareActivityId: result.activityId(),
@@ -177,6 +197,7 @@
                             result.duration().milliseconds(d.milliseconds);
 
                         },
+                        
                         onTimerButtonClick: function() {
                             switch (result.state()) {
                             case 0:
@@ -188,11 +209,16 @@
                             case 2:
                                 result.resumeTimer();
                                 break;
+                            case 3:
+                                result.startTimer();
+                                break;
                             default:
                                 break;
                             }
                         },
-
+                        onTimerButtonResetClick:function() {
+                            result.stopTimer();
+                         },
 
                     };
                     result.timerButtonDisplay = ko.computed(function() {
@@ -206,6 +232,9 @@
                             break;
                         case 2:
                             r = 'Resume';
+                            break;
+                        case 3:
+                            r = 'Start';
                             break;
                         default:
                             break;
