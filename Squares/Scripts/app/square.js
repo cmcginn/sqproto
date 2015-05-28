@@ -1,131 +1,180 @@
-﻿function lpad(originalstr, length, strToPad) {
-    while (originalstr.length < length)
-        originalstr = strToPad + originalstr;
-    return originalstr;
-}
-function setTime(ms) {
+﻿function Square(options) {
+    var postPath = rootPath + 'api/TimerAction';
 
-    var delta = Math.abs(ms) / 1000;
+    function toTimerActionModel(state) {
 
-    // calculate (and subtract) whole days
-    var days = Math.floor(delta / 86400);
-    delta -= days * 86400;
+        return {
+            Time: new Date().getTime(),
+            Elapsed: result.timer.lap(),
+            ActivityState: state,
+            Id: result.activityId(),
+            ParentId: result.id(),
+            Modified: false
+        };
+    }
 
-    // calculate (and subtract) whole hours
-    var hours = Math.floor(delta / 3600) % 24;
-    delta -= hours * 3600;
-
-    // calculate (and subtract) whole minutes
-    var minutes = Math.floor(delta / 60) % 60;
-    delta -= minutes * 60;
-
-    // what's left is seconds
-    var seconds = delta % 60;
-
-    var result = { days: days, hours: hours, minutes: minutes, seconds: seconds };
-
-    return result;
-}
-
-var Square = function (options) {
     var settings = options || {};
     var result = {
         id: ko.observable(settings.Id),
+        activityId: ko.observable(settings.UserSquareActivityId),
         elapsed: ko.observable(settings.Elapsed),
-        started: ko.observable(settings.Elapsed),
-        startDate: ko.observable(settings.StartDate),
-        runningTime: ko.observable(settings.RunningTime),
-        timer: null,
-        activityState: ko.observable(settings.ActivityState),
+        duration: ko.observable({
+            days: ko.observable(0),
+            hours: ko.observable(0),
+            minutes: ko.observable(0),
+            seconds: ko.observable(0),
+            milliseconds: ko.observable(0)
+        }),
         name: ko.observable(settings.Name),
-        value: null,
-        displayValue: ko.observable(null),
+        state: ko.observable(settings.ActivityState),
+        timer: null,
         canReset: ko.observable(false),
-        canHide: ko.observable(false),
-        visible: ko.observable(settings.Visible),
-        onHideClick: function() {
-            $.event.trigger({ type: 'hideClicked', args: result, time: new Date() });
-        },
-        onResetClick:function() {
-            $.event.trigger({ type: 'resetClicked', args: result, time: new Date() });
-        },
-        onSquareClick: function () {
+        startTimer: function () {
+            result.timer.start(result.elapsed());
+            $.post(postPath, toTimerActionModel(1, 0), function (r) {
+                result.activityId(r.Id);
+                result.state(r.ActivityState);
+            });
 
-            switch (result.activityState()) {
+        },
+        pauseTimer: function () {
+            result.timer.pause();
+            $.post(postPath, toTimerActionModel(2, 0), function (r) {
+                result.activityId(r.Id);
+                result.state(r.ActivityState);
+            });
+        },
+        resumeTimer: function () {
+            if (result.timer.pause_time == 0) {
+                result.timer.start(result.elapsed());
+            } else
+                result.timer.pause();
+            $.post(postPath, toTimerActionModel(1, 0), function (r) {
+                result.activityId(r.Id);
+                result.state(r.ActivityState);
+            });
+        },
+        stopTimer: function () {
+
+            result.timer.stop();
+            $.post(postPath, toTimerActionModel(3, 0), function (r) {
+                result.activityId(r.Id);
+                result.state(r.ActivityState);
+                var d = common.getDuration(0);
+                result.duration().days(d.days);
+                result.duration().hours(d.hours);
+                result.duration().minutes(d.minutes);
+                result.duration().seconds(d.seconds);
+                result.duration().milliseconds(d.milliseconds);
+                result.elapsed(0);
+            });
+
+        },
+        toData: function () {
+            return {
+                UserSquareActivityId: result.activityId(),
+                Id: result.id(),
+                ActivityState: result.state(),
+                Elapsed: result.timer.lap(),
+                Time: new Date().getTime(),
+                Name: result.name()
+            };
+        },
+        init: function () {
+            var ms = result.elapsed();
+            var d = common.getDuration(ms);
+            result.duration().days(d.days);
+            result.duration().hours(d.hours);
+            result.duration().minutes(d.minutes);
+            result.duration().seconds(d.seconds);
+            result.duration().milliseconds(d.milliseconds);
+            result.timer = new Tock({ interval: 1000, callback: result.onTick });
+            if (result.state() == 1)
+                result.timer.start(result.elapsed());
+        },
+        onDurationEdit: function () {
+            if (result.state() != 0)
+                result.timer.stop();
+            var d = 0;
+            d += Number(result.duration().days()) * 86400000;
+            d += Number(result.duration().hours()) * 3600000;
+            d += Number(result.duration().minutes()) * 60000;
+            d += Number(result.duration().seconds()) * 1000;
+
+            result.elapsed(d);
+            var data = toTimerActionModel(result.state(), 0);
+            data.Elapsed = d;
+            data.Modified = true;
+            $.post(postPath, data, function (r) {
+                if (result.state() != 0);
+                result.timer.start(result.elapsed());
+            });
+
+
+        },
+        onRenameClick: function () {
+            $.post(rootPath + 'Home/Rename', result.toData(), function (r, s) { });
+        },
+        onTick: function (e) {
+            var ms = result.timer.lap();
+            var d = common.getDuration(ms);
+            result.duration().days(d.days);
+            result.duration().hours(d.hours);
+            result.duration().minutes(d.minutes);
+            result.duration().seconds(d.seconds);
+            result.duration().milliseconds(d.milliseconds);
+
+        },
+
+        onTimerButtonClick: function () {
+            switch (result.state()) {
                 case 0:
-                    result.startDate(new Date().getTime());
                     result.startTimer();
                     break;
                 case 1:
                     result.pauseTimer();
                     break;
                 case 2:
-                    result.startDate(new Date().getTime());
                     result.resumeTimer();
+                    break;
+                case 3:
+                    result.startTimer();
                     break;
                 default:
                     break;
             }
-            //can reset if started or paused
-            result.canReset(result.activityState() > 1);
-            result.canHide(result.activityState() != 1);
-            $.event.trigger({ type: 'squareClicked', args: result, time: new Date() });
         },
-        onRenameClick: function() {
-            $.event.trigger({ type: 'renameClicked', args: result, time: new Date() });
+        onTimerButtonResetClick: function () {
+            result.stopTimer();
         },
-        onTick: function () {
-
-            result.elapsed(result.timer.lap());
-            result.value = setTime(result.runningTime() + result.elapsed());
-            result.getDisplayValue();
-         
-
-            
-        },
-        getDisplayValue: function () {
-            var r = lpad(result.value.days.toString(), 2, '0') + ' - Days ' + lpad(result.value.hours.toString(), 2, '0') + ':' + lpad(result.value.minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.value.seconds).toString(), 2, '0');
-            result.displayValue(r);
-        },
-        init: function () {
-            result.value = setTime(result.runningTime());
-            result.getDisplayValue();
-            result.timer = new Tock({ interval: 100, callback: result.onTick });
-            result.canReset(result.activityState() > 1);
-            result.canHide(result.activityState() != 1);
-        },
-        startTimer:function() {
-            result.timer.start();
-            result.activityState(1);
-        },
-        pauseTimer: function () {
-            result.timer.pause();
-            result.activityState(2);
-        },
-        resumeTimer:function() {
-            result.timer.start(result.timer.lap());
-            result.activityState(1);
-        },
-        stopTimer: function() {
-            result.timer.stop();
-            result.elapsed(0);
-            result.value = setTime(result.elapsed());
-            result.activityState(0);
-            result.runningTime(0);
-            result.getDisplayValue();
-
-        },
-        toData: function() {
-            return{
-                Elapsed: result.elapsed(),
-                Id: result.id(),
-                Name: result.name(),
-                ActivityState: result.activityState(),
-                StartDate:result.startDate()
-            };
-        }
 
     };
+
+    result.timerButtonDisplay = ko.computed(function () {
+        var r = '';
+        switch (result.state()) {
+            case 0:
+                r = 'Start';
+                result.canReset(false);
+                break;
+            case 1:
+                r = 'Pause';
+                result.canReset(false);
+                break;
+            case 2:
+                r = 'Resume';
+                result.canReset(true);
+                break;
+            case 3:
+                r = 'Start';
+                result.canReset(false);
+                break;
+            default:
+                break;
+
+        }
+        return r;
+    }, this);
     result.init();
     return result;
 }

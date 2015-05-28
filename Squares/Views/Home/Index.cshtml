@@ -1,111 +1,77 @@
-﻿<div style="margin:auto">
-    <div data-bind="foreach:UserSquares" class="row">
-        <div class="col-sm-3" data-bind="visible:visible">
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <div class="col-sm-12 text-center">
-                        <div class="input-group">
-                            <input type="text" data-bind="value:name" class="form-control" />
-                            <div class="input-group-addon">
-                                <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
-                            </div>
+﻿<div class="row" data-bind="foreach:userSquares">
+    <div class="col-sm-4">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-sm-12 text-center">
+                    <div class="input-group">
+                        <input type="text" data-bind="value:name" class="form-control" />
+                        <div class="input-group-addon">
+                            <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
                         </div>
                     </div>
-                    <div class="col-sm-12 text-center">
-                        <div class="btn btn-default btn-lg" data-bind="text:displayValue,click:onSquareClick"></div>
-                    </div>
-                    <div class="col-sm-12 text-center" data-bind="visible:canReset">
-                        <div class="btn btn-sm btn-default" data-bind="click:onResetClick">Reset</div>
-                    </div>
-                    <div class="col-sm-12 text-center" data-bind="visible:canHide">
-                        <div class="btn btn-sm btn-default" data-bind="click:onHideClick">Hide</div>
-                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><small>Days</small></th>
+
+
+                                <th><small>Hours</small></th>
+
+
+                                <th><small>Minutes</small></th>
+
+
+                                <th><small>Seconds</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick,visible:canReset">Reset</button>
                 </div>
             </div>
         </div>
-
     </div>
-    <div class="row">
-        <div class="col-sm-12">
-            <button id="addNew">Add</button>
-        </div>
-    </div>
+</div>
 
-    @section scripts{
-    </div>
 
-    <script src="~/Scripts/vendor/tock.js"></script>
-    @*<script src="~/Scripts/app/model.js"></script>*@
-    <script src="~/Scripts/app/square.js"></script>
+
+    
+@section scripts{
+<script src="~/Scripts/app/common.js"></script>
+<script src="~/Scripts/vendor/tock.js"></script>
+<script src="~/Scripts/app/square.js"></script>
     <script>
-        var viewModel = {};
-        function stopSquares(e) {
-            var data = { UserSquares: [] };
-            for (var i = 0; i < viewModel.UserSquares().length; i++) {
+        var viewModel = null;
+        function getSquares() {
+            $.get(rootPath + 'api/Square', function (r) {
 
-                if (viewModel.UserSquares()[i].id() != e.args.id()) {
-                    viewModel.UserSquares()[i].pauseTimer();
-                }
-                data.UserSquares.push(viewModel.UserSquares()[i].toData());
-            }
-
-
-            $.post(rootPath + 'api/Square', data, function (r, s) {
-
-            });
-        }
-
-        function resetSquare(e) {
-            $.post(rootPath + 'Home/ResetTimer/' + e.args.id(), function (r, s) {
-
-                e.args.stopTimer();
-            });
-        }
-
-        function renameSquare(e) {
-
-            var data = e.args.toData();
-            $.post(rootPath + 'Home/Rename', data, function(r, s) {
-
-            });
-        }
-
-        function addSquare() {
-
-            $.get(rootPath + 'api/Square/0', function(r, s) {
-                var square = new Square(r);
-                viewModel.UserSquares.push(square);
-            });
-
-        }
-        function hideSquare(e) {
-            $.post(rootPath + 'Home/HideUserSquare/' +e.args.id() , function (r, s) {
-                e.args.visible(false);
-            });
-        }
-        $(function () {
-
-            $.get(rootPath + 'api/Square', function (r, s) {
-
+                var vm = { userSquares: [] };
                 for (var i = 0; i < r.UserSquares.length; i++) {
-                    var vm = r;
-                    r.UserSquares[i] = new Square(r.UserSquares[i]);
-                    console.log(r.UserSquares[i].activityState());
-                    if (r.UserSquares[i].activityState() == 1) {
-                        r.UserSquares[i].resumeTimer();
-                    }
+                    var s = new Square(r.UserSquares[i]);
+                    vm.userSquares.push(s);
                 }
                 viewModel = ko.mapping.fromJS(vm);
                 ko.applyBindings(viewModel);
- 
-                $(document).on('squareClicked', stopSquares)
-                    .on('resetClicked', resetSquare)
-                    .on('renameClicked', renameSquare)
-                    .on('hideClicked',hideSquare)
-                    .on('click','#addNew',addSquare);
             });
+        }
+        $(function () {
+            getSquares();
 
         });
-
     </script>
-    }
+}
+                   
