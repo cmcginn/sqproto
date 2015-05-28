@@ -299,8 +299,44 @@ namespace Squares.Services
             _context.UserSquareActivityActions.Add(target);
             _context.SaveChanges();
         }
+
+        void ModifyTime(string userId, TimerActionModel model)
+        {
+            var userSquare = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.ParentId);
+            var userSquareActivity = _context.UserSquareActivities.SingleOrDefault(x => x.Id == model.Id);
+            if (userSquareActivity != null)
+            {
+                var currentTime = userSquareActivity.Milliseconds;
+                var currentElapsed = userSquareActivity.Elapsed;
+
+                var started = model.Time - model.Elapsed;
+                userSquareActivity.Milliseconds = started;
+                userSquareActivity.Elapsed = model.Elapsed;
+                userSquareActivity.LastUpdatedUtc = System.DateTime.UtcNow;
+
+                var action = new UserSquareActivityAction
+                {
+                    ActivityState = userSquare.ActivityState,
+                    CreatedOnUtc = System.DateTime.UtcNow,
+                    Id = Guid.NewGuid(),
+                    UserSquareActivityId = userSquareActivity.Id,
+                    Milliseconds = 0,
+                    Description = String.Format("Duration Changed. Elapsed: {0} Changed To: {1}. Start: {2} Changed To: {3}",currentElapsed,model.Elapsed,currentTime,started)
+                };
+                _context.UserSquareActivityActions.Add(action);
+                _context.SaveChanges();
+                model.Time = currentTime;
+
+
+            }
+        }
         void SaveUserSquareActivityForTimer(string userId, TimerActionModel model)
         {
+            if (model.Modified)
+            {
+                ModifyTime(userId, model);
+                return;
+            }
             var userSquare = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.ParentId);
             var userSquareActivity = _context.UserSquareActivities.SingleOrDefault(x => x.Id == model.Id);
             if (userSquareActivity != null)
@@ -354,7 +390,7 @@ namespace Squares.Services
                     .ToList()
                     .Last();
             var usa = _context.UserSquareActivities.Single(x => x.Id == model.UserSquareActivityId);
-            model.Elapsed = (epoch - usa.Milliseconds - lastStarted.Milliseconds);
+            model.Elapsed = (epoch - (usa.Milliseconds + lastStarted.Milliseconds));
             
 
 

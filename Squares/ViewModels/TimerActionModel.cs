@@ -12,5 +12,6 @@ namespace Squares.ViewModels
         public Guid Id { get; set; }
         public Guid ParentId { get; set; }
         public ActivityStateTypes ActivityState { get; set; }
+        public bool Modified { get; set; }
     }
 }

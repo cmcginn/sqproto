@@ -54,7 +54,8 @@ namespace Squares.Controllers
         {
             _service.ResetTimer(User.Identity.GetUserId(), id);
         }
-
+      
+        
         [HttpPost]
         public void HideUserSquare(Guid id)
         {

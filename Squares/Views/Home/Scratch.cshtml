@@ -40,7 +40,7 @@
                     <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
                 </div>
                 <div class="col-sm-12">
-                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick">Reset</button>
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick,visible:canReset">Reset</button>
                 </div>
             </div>
         </div>
@@ -83,13 +83,14 @@
                     var postPath = rootPath + 'api/TimerAction';
 
                     function toTimerActionModel(state) {
-                        
+
                         return {
                             Time: new Date().getTime(),
                             Elapsed: result.timer.lap(),
                             ActivityState: state,
                             Id: result.activityId(),
-                            ParentId: result.id()
+                            ParentId: result.id(),
+                            Modified:false
                         };
                     }
 
@@ -105,9 +106,10 @@
                             seconds: ko.observable(0),
                             milliseconds: ko.observable(0)
                         }),
-                        name:ko.observable(settings.Name),
+                        name: ko.observable(settings.Name),
                         state: ko.observable(settings.ActivityState),
                         timer: null,
+                        canReset: ko.observable(false),
                         startTimer: function() {
                             result.timer.start(result.elapsed());
                             $.post(postPath, toTimerActionModel(1, 0), function(r) {
@@ -133,10 +135,10 @@
                                 result.state(r.ActivityState);
                             });
                         },
-                        stopTimer: function () {
-           
+                        stopTimer: function() {
+
                             result.timer.stop();
-                            $.post(postPath, toTimerActionModel(3, 0), function (r) {
+                            $.post(postPath, toTimerActionModel(3, 0), function(r) {
                                 result.activityId(r.Id);
                                 result.state(r.ActivityState);
                                 var d = common.getDuration(0);
@@ -147,16 +149,16 @@
                                 result.duration().milliseconds(d.milliseconds);
                                 result.elapsed(0);
                             });
-                            
+
                         },
-                        toData:function() {
+                        toData: function() {
                             return {
                                 UserSquareActivityId: result.activityId(),
                                 Id: result.id(),
                                 ActivityState: result.state(),
                                 Elapsed: result.timer.lap(),
                                 Time: new Date().getTime(),
-                                Name:result.name()
+                                Name: result.name()
                             };
                         },
                         init: function() {
@@ -179,9 +181,16 @@
                             d += Number(result.duration().hours()) * 3600000;
                             d += Number(result.duration().minutes()) * 60000;
                             d += Number(result.duration().seconds()) * 1000;
+
                             result.elapsed(d);
-                            if (result.state() != 0)
-                                result.timer.start();
+                            var data = toTimerActionModel(result.state(), 0);
+                            data.Elapsed = d;
+                            data.Modified = true;
+                            $.post(postPath, data, function(r) {
+                                if (result.state() != 0);
+                                    result.timer.start(result.elapsed());
+                            });
+
 
                         },
                         onRenameClick: function() {
@@ -197,7 +206,7 @@
                             result.duration().milliseconds(d.milliseconds);
 
                         },
-                        
+
                         onTimerButtonClick: function() {
                             switch (result.state()) {
                             case 0:
@@ -216,25 +225,30 @@
                                 break;
                             }
                         },
-                        onTimerButtonResetClick:function() {
+                        onTimerButtonResetClick: function() {
                             result.stopTimer();
-                         },
+                        },
 
                     };
+
                     result.timerButtonDisplay = ko.computed(function() {
                         var r = '';
                         switch (result.state()) {
                         case 0:
                             r = 'Start';
+                            result.canReset(false);
                             break;
                         case 1:
                             r = 'Pause';
+                            result.canReset(false);
                             break;
                         case 2:
                             r = 'Resume';
+                            result.canReset(true);
                             break;
                         case 3:
                             r = 'Start';
+                            result.canReset(false);
                             break;
                         default:
                             break;
@@ -249,15 +263,7 @@
 
                 $(function() {
                     getSquares();
-                    //var vm = { userSquares: [] };
-                    //for (var i = 0; i < data.userSquares.length; i++) {
-                    //    var s = new Square(data.userSquares[i]);
-                    //    vm.userSquares.push(s);
 
-                    //}
-
-                    //viewModel = ko.mapping.fromJS(vm);
-                    //ko.applyBindings(viewModel);
                 });
             </script>
         }
