@@ -49,7 +49,13 @@ namespace Squares.Controllers
             _service.RenameSquare(User.Identity.GetUserId(), model);
 
         }
-       
+
+        [HttpPost]
+        public JsonResult AddNewUserSquare()
+        {
+            var result = _service.AddNewUserSquare(User.Identity.GetUserId());
+            return Json(result);
+        }
         [HttpPost]
         public void HideUserSquare(Guid id)
         {

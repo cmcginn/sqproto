@@ -157,21 +157,6 @@ namespace Squares.Services
             return result;
         }
 
-        //public void ResetTimer(string userId, Guid id)
-        //{
-        //    var target = _context.UserSquares.Where(x => x.UserId == userId && x.Id == id).SingleOrDefault();
-        //    if (target != null)
-        //    {
-        //        //var lastActivity =
-        //        //    target.UserSquareActivities.OrderBy(x => x.BeginMilliseconds).Last();
-        //        //lastActivity.ActivityState =
-        //        //        (int)ActivityStateTypes.Stopped;
-        //        //target.ActivityState = lastActivity.ActivityState;
-        //        target.RunningTime = 0;
-        //        _context.SaveChanges();
-        //    }
-        //}
-
         public void RenameSquare(string userId, UserSquareViewModel model)
         {
             var target = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.Id);
@@ -184,14 +169,14 @@ namespace Squares.Services
 
         public UserSquareViewModel AddNewUserSquare(string userId)
         {
-            var displayOrder = _context.UserSquares.Max(x => x.DisplayOrder);
+            var displayOrder = _context.UserSquares.Max(x => x.DisplayOrder)+1;
             var userSquare = new UserSquare
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 ActivityState = (int)ActivityStateTypes.None,
                 CreratedOnUtc = System.DateTime.UtcNow,
-                DisplayOrder = displayOrder += 1,
+                DisplayOrder = displayOrder,
                 DisplayName = "New Square",
                 Hidden = false
             };
@@ -200,8 +185,10 @@ namespace Squares.Services
             var result = new UserSquareViewModel
             {
                 ActivityState = ActivityStateTypes.None,
-                // BeginMilliseconds = 0,
+                Elapsed=0,
+                Milliseconds=0,
                 Id = userSquare.Id,
+                UserSquareActivityId=Guid.NewGuid(),
                 Name = userSquare.DisplayName,
                 Visible = !userSquare.Hidden
             };

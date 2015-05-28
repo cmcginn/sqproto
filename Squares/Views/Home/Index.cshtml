@@ -47,7 +47,11 @@
     </div>
 </div>
 
-
+<div class="row">
+    <div class="col-sm-12">
+        <button class="btn btn-default btn-lg" id="addNew">Add New</button>
+    </div>
+</div>
 
     
 @section scripts{
@@ -56,6 +60,12 @@
 <script src="~/Scripts/app/square.js"></script>
     <script>
         var viewModel = null;
+        function addNewSquare() {
+            $.post(rootPath + 'home/AddNewUserSquare', function(r, s) {
+                var square = new Square(r);
+                viewModel.userSquares.push(square);
+            });
+        }
         function getSquares() {
             $.get(rootPath + 'api/Square', function (r) {
 
@@ -70,6 +80,7 @@
         }
         $(function () {
             getSquares();
+            $(document).on('click', '#addNew', addNewSquare);
 
         });
     </script>
