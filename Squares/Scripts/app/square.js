@@ -28,7 +28,9 @@
         name: ko.observable(settings.Name),
         state: ko.observable(settings.ActivityState),
         timer: null,
+        visible:ko.observable(true),
         canReset: ko.observable(false),
+        canHide:ko.observable(false),
         startTimer: function () {
             result.timer.start(result.elapsed());
             $.post(postPath, toTimerActionModel(1, 0), function (r) {
@@ -112,6 +114,11 @@
 
 
         },
+        onHideButtonClick: function () {
+            $.post(rootPath + 'home/HideUserSquare', { id: result.id() }, function(r) {
+                result.visible(false);
+            });
+        },
         onRenameClick: function () {
             $.post(rootPath + 'Home/Rename', result.toData(), function (r, s) { });
         },
@@ -125,7 +132,6 @@
             result.duration().milliseconds(d.milliseconds);
 
         },
-
         onTimerButtonClick: function () {
             switch (result.state()) {
                 case 0:
@@ -156,18 +162,22 @@
             case 0:
                 r = 'Start';
                 result.canReset(false);
+                result.canHide(true);
                 break;
             case 1:
                 r = 'Pause';
                 result.canReset(false);
+                result.canHide(false);
                 break;
             case 2:
                 r = 'Resume';
                 result.canReset(true);
+                result.canHide(true);
                 break;
             case 3:
                 r = 'Start';
                 result.canReset(false);
+                result.canHide(true);
                 break;
             default:
                 break;

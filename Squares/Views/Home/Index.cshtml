@@ -1,5 +1,5 @@
 ﻿<div class="row" data-bind="foreach:userSquares">
-    <div class="col-sm-4">
+    <div class="col-sm-4" data-bind="visible:visible">
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="col-sm-12 text-center">
@@ -41,6 +41,9 @@
                 </div>
                 <div class="col-sm-12">
                     <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick,visible:canReset">Reset</button>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onHideButtonClick,visible:canHide">Hide</button>
                 </div>
             </div>
         </div>
