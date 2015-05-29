@@ -35,7 +35,7 @@ if (typeof Function.prototype.bind != 'function') {
      */
     function _tick() {
         this.time += this.interval;
-
+        this.clock.elapsed_ms = this.elapsed();
         if (this.countdown && (this.duration_ms - this.time < 0)) {
             this.final_time = 0;
             this.go = false;
@@ -107,7 +107,7 @@ if (typeof Function.prototype.bind != 'function') {
         this.interval = options.interval || 10;
         this.countdown = options.countdown || false;
         this.start_time = 0;
-        this.start_ms = options.start_ms || 0;
+        this.clock = options.clock || { elapsed_ms: 0, start_ms: 0,running_ms:0 };
         this.pause_time = 0;
         this.final_time = 0;
         this.duration_ms = 0;
@@ -138,11 +138,14 @@ if (typeof Function.prototype.bind != 'function') {
      ** milliseconds
      */
     Tock.prototype.start = function (time) {
-        time = time ? this.timeToMS(time) : 0;
+        if (this.clock.elapsed_ms == 0)
+            time = this.timeToMS(this.clock.elapsed_ms);
+        else
+            time = time ? this.timeToMS(time) : 0;
 
         this.start_time = time;
 
-        this.start_ms = this.start_ms = 0 ? Date.now() : this.start_ms;
+        this.clock.start_ms = this.clock.start_ms = 0 ? Date.now() : this.clock.start_ms;
 
         if (this.countdown) {
             _startCountdown.call(this, time);
@@ -186,7 +189,7 @@ if (typeof Function.prototype.bind != 'function') {
         }
     };
     Tock.prototype.elapsed = function() {
-        return (this.start_time - this.start_ms)+this.lap(); //this.lap();
+        return (this.start_time - this.clock.start_ms)+this.lap()+this.clock.running_ms; //this.lap();
     }
     /**
      * Get the current clock time in ms.

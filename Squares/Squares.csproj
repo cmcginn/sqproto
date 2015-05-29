@@ -168,6 +168,7 @@
     <Compile Include="ApiControllers\ScratchController.cs" />
     <Compile Include="ApiControllers\SquareController.cs" />
     <Compile Include="ApiControllers\TimerActionController.cs" />
+    <Compile Include="ApiControllers\ClockController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
@@ -214,6 +215,7 @@
     <Compile Include="ViewModels\ReportItemViewModel.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\TimerActionModel.cs" />
+    <Compile Include="ViewModels\ClockModel.cs" />
     <Compile Include="ViewModels\UserSquareActionModel.cs" />
     <Compile Include="ViewModels\UserSquaresViewModel.cs" />
     <Compile Include="ViewModels\UserSquareViewModel.cs" />
