@@ -213,46 +213,44 @@ namespace Squares.Services
             userSquares.ForEach(us =>
             {
                 var item = new ReportItemViewModel();
-                //  item.MinDate = us.UserSquareActivities.Min(x => x.StartUtc);
-                // item.MaxDate = us.UserSquareActivities.Max(x => x.StartUtc);
+                item.MinDate = us.UserSquareActivities.Min(x => x.Milliseconds);
+                item.MaxDate = us.UserSquareActivities.Max(x => x.Milliseconds);
                 item.Name = us.DisplayName;
-                //item.TotalDuration = us.UserSquareActivities.Sum(x => x.BeginMilliseconds);
+                item.TotalDuration = us.UserSquareActivities.Sum(x => x.Elapsed);
                 item.Id = us.Id;
                 result.ReportItems.Add(item);
-                //us.UserSquareActivities.OrderBy(x => x.StartUtc).ToList().ForEach(usa =>
-                //{
-                //    var activity = new ActivityRecord();
-                //    activity.Id = usa.Id;
-                //    activity.Duration = Duration.FromMS(usa.ElapsedMilliseconds);
-                //    activity.StartDate = usa.StartUtc;
-                //    activity.ActivityState = ((ActivityStateTypes) usa.ActivityState).ToString();
-                //    activity.UserSquareId = us.Id;
-                //    item.ActivityRecords.Add(activity);
+                us.UserSquareActivities.OrderBy(x => x.Milliseconds).ToList().ForEach(usa =>
+                {
+                    var activity = new ActivityRecord();
+                    activity.Id = usa.Id;
+                    activity.Duration = Duration.FromMS(usa.Elapsed);
+                    activity.StartDate = usa.Milliseconds;
+                    activity.UserSquareId = us.Id;
+                    item.ActivityRecords.Add(activity);
 
-                //});
+                });
             });
             return result;
         }
 
         public void SaveReportItemViewModel(string userId, ReportItemViewModel model)
         {
-            var us = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.Id);
+            //var us = _context.UserSquares.Single(x => x.UserId == userId && x.Id == model.Id);
 
-            long elappsedTotal = 0;
-            model.ActivityRecords.ForEach(ar =>
-            {
-                var usa = us.UserSquareActivities.Single(x => x.Id == ar.Id);
-                //usa.StartUtc = ar.StartDate;
-                var endDate =
-                    ar.StartDate.AddDays(ar.Duration.Days)
-                        .AddHours(ar.Duration.Hours)
-                        .AddMinutes(ar.Duration.Minutes)
-                        .AddSeconds(ar.Duration.Seconds);
-                //usa.BeginMilliseconds = (long)(endDate - ar.StartDate).TotalMilliseconds;
-                //elappsedTotal += usa.BeginMilliseconds;
+            //long elappsedTotal = 0;
+            //model.ActivityRecords.ForEach(ar =>
+            //{
+            //    var usa = us.UserSquareActivities.Single(x => x.Id == ar.Id);
 
-            });
-            _context.SaveChanges();
+            //    var endDate =
+            //        ar.StartDate.AddDays(ar.Duration.Days)
+            //            .AddHours(ar.Duration.Hours)
+            //            .AddMinutes(ar.Duration.Minutes)
+            //            .AddSeconds(ar.Duration.Seconds);
+
+
+            //});
+            //_context.SaveChanges();
         }
 
         public void DeleteUserSquareActivity(string userId, Guid id)
@@ -303,7 +301,7 @@ namespace Squares.Services
                     CreatedOnUtc = System.DateTime.UtcNow,
                     Id = Guid.NewGuid(),
                     UserSquareActivityId = userSquareActivity.Id,
-                    Milliseconds = 0,
+                    Milliseconds = model.Modified,
                     Description = String.Format("Duration Changed. Elapsed: {0} Changed To: {1}. Start: {2} Changed To: {3}",currentElapsed,model.Elapsed,currentTime,started)
                 };
                 _context.UserSquareActivityActions.Add(action);
@@ -315,7 +313,7 @@ namespace Squares.Services
         }
         void SaveUserSquareActivityForTimer(string userId, TimerActionModel model)
         {
-            if (model.Modified)
+            if (model.Modified>0)
             {
                 ModifyTime(userId, model);
                 return;
@@ -373,7 +371,8 @@ namespace Squares.Services
                     .ToList()
                     .Last();
             var usa = _context.UserSquareActivities.Single(x => x.Id == model.UserSquareActivityId);
-            model.Elapsed = (epoch - (usa.Milliseconds + lastStarted.Milliseconds));
+            var ss = System.DateTime.Parse("1/1/1970").Date.AddMilliseconds(usa.Milliseconds+lastStarted.Milliseconds);
+            model.Elapsed = (long)(System.DateTime.UtcNow - ss).TotalMilliseconds;
             
 
 

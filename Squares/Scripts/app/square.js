@@ -9,7 +9,7 @@
             ActivityState: state,
             Id: result.activityId(),
             ParentId: result.id(),
-            Modified: false
+            Modified: 0
         };
     }
 
@@ -95,8 +95,11 @@
                 result.timer.start(result.elapsed());
         },
         onDurationEdit: function () {
+            var el = result.timer.lap();
+       
             if (result.state() != 0)
                 result.timer.stop();
+            
             var d = 0;
             d += Number(result.duration().days()) * 86400000;
             d += Number(result.duration().hours()) * 3600000;
@@ -106,7 +109,8 @@
             result.elapsed(d);
             var data = toTimerActionModel(result.state(), 0);
             data.Elapsed = d;
-            data.Modified = true;
+            data.Modified = el;
+            result.timer.start_time = new Date().getTime() - d;
             $.post(postPath, data, function (r) {
                 if (result.state() != 0);
                 result.timer.start(result.elapsed());

@@ -263,6 +263,7 @@
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\app\square.js" />
     <Content Include="Scripts\vendor\bootstrap-datetimepicker.min.js" />
+    <Content Include="Scripts\vendor\tock.mod.js" />
     <Content Include="Scripts\vendor\tock.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
