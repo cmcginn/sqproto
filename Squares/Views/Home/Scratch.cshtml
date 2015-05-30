@@ -12,7 +12,10 @@
                 var watch = { time: 1000000 };
                 var timer = new Tock({
                     interval: 1000,
-                    watch:watch
+                    stateChanged:function(e) {
+                        console.log(e.state);
+        
+                    }
 
                 });
             </script>

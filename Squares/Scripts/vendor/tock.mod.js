@@ -29,15 +29,22 @@ if (typeof Function.prototype.bind != 'function') {
     }
 }(this, function () {
 
+
+    /*custom*/
+    function _changeState(s) {
+        this.state = s;
+        this.stateChanged(this);
+    }
+
     /**
      * Called every tick for countdown clocks.
      * i.e. once every this.interval ms
      */
     function _tick() {
-        this.watch.time += this.interval;
+        this.time += this.interval;
 
-        if (this.countdown && (this.duration_ms - this.watch.time < 0)) {
-            this.watch.final_time = 0;
+        if (this.countdown && (this.duration_ms - this.time < 0)) {
+            this.final_time = 0;
             this.go = false;
             this.callback(this);
             window.clearTimeout(this.timeout);
@@ -48,12 +55,12 @@ if (typeof Function.prototype.bind != 'function') {
             this.callback(this);
         }
 
-        var diff = (Date.now() - this.watch.start_time) - this.watch.time,
+        var diff = (Date.now() - this.start_time) - this.time,
             next_interval_in = diff > 0 ? this.interval - diff : this.interval;
 
         if (next_interval_in <= 0) {
             this.missed_ticks = Math.floor(Math.abs(next_interval_in) / this.interval);
-            this.watch.time += this.missed_ticks * this.interval;
+            this.time += this.missed_ticks * this.interval;
 
             if (this.go) {
                 _tick.call(this);
@@ -69,8 +76,8 @@ if (typeof Function.prototype.bind != 'function') {
      */
     function _startCountdown(duration) {
         this.duration_ms = duration;
-        this.watch.start_time = Date.now();
-        this.watch.time = 0;
+        this.start_time = Date.now();
+        this.time = 0;
         this.go = true;
         _tick.call(this);
     }
@@ -79,8 +86,8 @@ if (typeof Function.prototype.bind != 'function') {
      * Called by Tock internally - use start() instead
      */
     function _startTimer(start_offset) {
-        this.watch.start_time = start_offset || Date.now();
-        this.watch.time = 0;
+        this.start_time = start_offset || Date.now();
+        this.time = 0;
         this.go = true;
         _tick.call(this);
     }
@@ -106,12 +113,13 @@ if (typeof Function.prototype.bind != 'function') {
         this.missed_ticks = null;
         this.interval = options.interval || 10;
         this.countdown = options.countdown || false;
-        this.watch = options.watch;
-        this.watch.start_time = 0;
-        this.watch.pause_time = 0;
-        this.watch.final_time = 0;
+        this.start_time = 0;
+        this.pause_time = 0;
+        this.final_time = 0;
         this.duration_ms = 0;
-        this.watch.time = options.watch.time || 0;
+        this.time = 0;
+        this.state = 0;
+        this.stateChanged = options.stateChanged || function() {};
         this.callback = options.callback || function () { };
         this.complete = options.complete || function () { };
     };
@@ -124,8 +132,8 @@ if (typeof Function.prototype.bind != 'function') {
             return false;
         }
         this.stop();
-        this.watch.start_time = 0;
-        this.watch.time = 0;
+        this.start_time = 0;
+        this.time = 0;
     };
 
     /**
@@ -137,15 +145,15 @@ if (typeof Function.prototype.bind != 'function') {
      ** yyyy-mm-dd HH:MM:SS.ms
      ** milliseconds
      */
-    Tock.prototype.start = function () {
-       // time = time ? this.watch.timeToMS(time) : 0;
-
-        this.watch.start_time = this.watch.time;
+    Tock.prototype.start = function (time) {
+        time = time ? this.timeToMS(time) : 0;
+        _changeState.call(this,1);
+        this.start_time = time;
 
         if (this.countdown) {
-            _startCountdown.call(this, this.watch.time);
+            _startCountdown.call(this, time);
         } else {
-            _startTimer.call(this, Date.now() - this.watch.time);
+            _startTimer.call(this, Date.now() - time);
         }
     };
 
@@ -153,15 +161,16 @@ if (typeof Function.prototype.bind != 'function') {
      * Stop the clock.
      */
     Tock.prototype.stop = function () {
-        this.watch.pause_time = this.lap();
+        _changeState(3);
+        this.pause_time = this.lap();
         this.go = false;
 
         window.clearTimeout(this.timeout);
 
         if (this.countdown) {
-            this.watch.final_time = this.duration_ms - this.watch.time;
+            this.final_time = this.duration_ms - this.time;
         } else {
-            this.watch.final_time = (Date.now() - this.watch.start_time);
+            this.final_time = (Date.now() - this.start_time);
         }
     };
 
@@ -170,15 +179,17 @@ if (typeof Function.prototype.bind != 'function') {
      */
     Tock.prototype.pause = function () {
         if (this.go) {
-            this.watch.pause_time = this.lap();
+            this.pause_time = this.lap();
             this.stop();
+            _changeState(2);
         }
         else {
-            if (this.watch.pause_time) {
+            if (this.pause_time) {
                 if (this.countdown) {
-                    _startCountdown.call(this, this.watch.pause_time);
+                    _startCountdown.call(this, this.pause_time);
                 } else {
-                    _startTimer.call(this, Date.now() - this.watch.pause_time);
+                    _startTimer.call(this, Date.now() - this.pause_time);
+                    _changeState(1);
                 }
             }
         }
@@ -193,20 +204,27 @@ if (typeof Function.prototype.bind != 'function') {
             var now;
 
             if (this.countdown) {
-                now = this.duration_ms - (Date.now() - this.watch.start_time);
+                now = this.duration_ms - (Date.now() - this.start_time);
             } else {
-                now = (Date.now() - this.watch.start_time);
+                now = (Date.now() - this.start_time);
             }
 
             return now;
         }
 
-        return this.watch.pause_time || this.watch.final_time;
+        return this.pause_time || this.final_time;
     };
 
     /**
      * Format milliseconds as a MM:SS.ms string.
      */
+    Tock.prototype.data = function() {
+        return{
+            startTime: this.start_time,
+            elapsed: this.lap(),
+            pauseTime:this.pause_time
+        };
+    }
     Tock.prototype.msToTime = function (ms) {
         if (ms <= 0) {
             return '00:00.000';
