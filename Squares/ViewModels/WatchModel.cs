@@ -5,9 +5,9 @@ using System.Web;
 
 namespace Squares.ViewModels
 {
-    public class ClockModel
+    public class WatchModel
     {
-        public long elapsed_ms { get; set; }
-        public long start_ms { get; set; }
+        public long time { get; set; }
+
     }
 }

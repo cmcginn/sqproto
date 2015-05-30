@@ -8,7 +8,7 @@ using Squares.ViewModels;
 
 namespace Squares.ApiControllers
 {
-    public class ClockController : ApiController
+    public class WatchController : ApiController
     {
         // GET: api/Timer
         public IEnumerable<string> Get()
@@ -23,7 +23,7 @@ namespace Squares.ApiControllers
         }
 
         // POST: api/Timer
-        public void Post(ClockModel model)
+        public void Post(WatchModel model)
         {
             var x = "Y";
         }
