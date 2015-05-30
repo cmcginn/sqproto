@@ -91,7 +91,18 @@ if (typeof Function.prototype.bind != 'function') {
         this.go = true;
         _tick.call(this);
     }
+    function _stopTimer() {
+        this.pause_time = this.lap();
+        this.go = false;
 
+        window.clearTimeout(this.timeout);
+
+        if (this.countdown) {
+            this.final_time = this.duration_ms - this.time;
+        } else {
+            this.final_time = (Date.now() - this.start_time);
+        }
+    }
     var MILLISECONDS_RE = /^\s*(\+|-)?\d+\s*$/,
         MM_SS_RE = /^(\d{2}):(\d{2})$/,
         MM_SS_ms_OR_HH_MM_SS_RE = /^(\d{2}):(\d{2})(?::|\.)(\d{2,3})$/,
@@ -161,27 +172,30 @@ if (typeof Function.prototype.bind != 'function') {
      * Stop the clock.
      */
     Tock.prototype.stop = function () {
-        _changeState(3);
-        this.pause_time = this.lap();
-        this.go = false;
+        _stopTimer.call(this);
+        _changeState.call(this,3);
+        //this.pause_time = this.lap();
+        //this.go = false;
 
-        window.clearTimeout(this.timeout);
+        //window.clearTimeout(this.timeout);
 
-        if (this.countdown) {
-            this.final_time = this.duration_ms - this.time;
-        } else {
-            this.final_time = (Date.now() - this.start_time);
-        }
+        //if (this.countdown) {
+        //    this.final_time = this.duration_ms - this.time;
+        //} else {
+        //    this.final_time = (Date.now() - this.start_time);
+        //}
     };
 
     /**
      * Stop/start the clock.
      */
     Tock.prototype.pause = function () {
+     
         if (this.go) {
             this.pause_time = this.lap();
+            _stopTimer.call(this);
             this.stop();
-            _changeState(2);
+            _changeState.call(this,2);
         }
         else {
             if (this.pause_time) {
@@ -189,7 +203,7 @@ if (typeof Function.prototype.bind != 'function') {
                     _startCountdown.call(this, this.pause_time);
                 } else {
                     _startTimer.call(this, Date.now() - this.pause_time);
-                    _changeState(1);
+                    _changeState.call(this,1);
                 }
             }
         }
