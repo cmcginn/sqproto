@@ -26,9 +26,10 @@ namespace Squares.ApiControllers
         }
 
         // POST: api/Timer
-        public void Post(StopWatchModel model)
+        public StopWatchModel Post(StopWatchModel model)
         {
-            _service.SaveStopWatch(User.Identity.GetUserId(), model);
+           _service.SaveStopWatch(User.Identity.GetUserId(), model);
+           return model;
         }
 
         // PUT: api/Timer/5

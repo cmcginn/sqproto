@@ -167,15 +167,15 @@ if (typeof Function.prototype.bind != 'function') {
      ** milliseconds
      */
     Tock.prototype.start = function (time) {
-        time = time ? this.timeToMS(time) : 0;
+        //time = time ? this.timeToMS(time) : 0;
         this.started = this.started == 0 ? Date.now() : this.started;
         _changeState.call(this,1);
-        this.start_time = time;
+        this.start_time = this.time;
 
         if (this.countdown) {
             _startCountdown.call(this, time);
         } else {
-            _startTimer.call(this, Date.now() - time);
+            _startTimer.call(this, Date.now() - this.time);
         }
     };
 

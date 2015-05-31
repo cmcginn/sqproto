@@ -16,6 +16,20 @@ namespace Squares.Services
             _context = context;
         }
 
+        StopWatch CreateDefaultStopWatch(Guid userSqureId)
+        {
+            var result = new StopWatch
+            {
+                CreatedOnUtc = System.DateTime.UtcNow,
+                Elapsed = 0,
+                Id = Guid.NewGuid(),
+                Started = 0,
+                State = (int)ActivityStateTypes.None,
+                UserSquareId = userSqureId
+
+            };
+            return result;
+        }
         List<UserSquare> CreateDefaultUserSquares(string userId)
         {
             var result = new List<UserSquare>();
@@ -31,19 +45,12 @@ namespace Squares.Services
                     Hidden = false
 
                 };
-                var sw = new StopWatch
-                {
-                    CreatedOnUtc = square.CreratedOnUtc,
-                    Elapsed = 0,
-                    Id = Guid.NewGuid(),
-                    Started = 0,
-                    State = (int) ActivityStateTypes.None,
-                    UserSquareId = square.Id
-
-                };
+                var sw = CreateDefaultStopWatch(square.Id);
+                sw.CreatedOnUtc = square.CreratedOnUtc;
                 square.StopWatches.Add(sw);
                 result.Add(square);
             }
+
             return result;
         }
 
@@ -83,14 +90,28 @@ namespace Squares.Services
             return result;
         }
 
+
         public void SaveStopWatch(string userId, StopWatchModel model)
         {
-            var target = _context.StopWatches.Single(x => x.Id == model.Id);
-            target.LastUpdatedUtc = System.DateTime.UtcNow;
-            target.Started = model.Started;
-            target.State = (int)model.State;
-            target.Elapsed = model.Time;
-            _context.SaveChanges();
+           
+         
+                var target = _context.StopWatches.Single(x => x.Id == model.Id);
+                target.LastUpdatedUtc = System.DateTime.UtcNow;
+                target.Started = model.Started;
+                target.State = (int) model.State;
+                target.Elapsed = model.Time;
+                if (model.State == ActivityStateTypes.Stopped)
+                {
+                    var sw = CreateDefaultStopWatch(target.UserSquareId);
+                    _context.StopWatches.Add(sw);
+                    model.Id = sw.Id;
+                    model.Started = sw.Started;
+                    model.State = (ActivityStateTypes)sw.Started;
+                    model.Time = sw.Elapsed;
+                    
+                }
+                _context.SaveChanges();
+           
         }
     }
 
