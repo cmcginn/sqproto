@@ -21,15 +21,16 @@ namespace Squares.ApiControllers
         }
 
         // GET: api/Square/5
-        public UserSquareViewModel Get(int id)
+        public UserSquareViewModel Get(Guid id)
         {
-            throw new NotImplementedException();
+            return _service.GetUserSquareViewModel(User.Identity.GetUserId(), id);
         }
 
         //POST: api/Square
-        public void Post(UserSquaresViewModel model)
+        public UserSquareViewModel Post(UserSquareViewModel model)
         {
-            throw new NotImplementedException();
+            _service.SaveUserSquare(User.Identity.GetUserId(), model);
+            return model;
 
         }
 

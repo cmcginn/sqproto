@@ -30,24 +30,31 @@ namespace Squares.Services
             };
             return result;
         }
+
+        UserSquare CreateDefaultUserSquare(string userId)
+        {
+            var result = new UserSquare
+            {
+                UserId = userId,
+                CreratedOnUtc = System.DateTime.UtcNow,
+                DisplayOrder = 0,
+                DisplayName = String.Format("New Square"),
+                Id = Guid.NewGuid(),
+                Hidden = false
+
+            };
+            var sw = CreateDefaultStopWatch(result.Id);
+            sw.CreatedOnUtc = result.CreratedOnUtc;
+            result.StopWatches.Add(sw);
+            return result;
+        }
         List<UserSquare> CreateDefaultUserSquares(string userId)
         {
             var result = new List<UserSquare>();
             for (int i = 0; i < 1; i++)
             {
-                var square = new UserSquare
-                {
-                    UserId = userId,
-                    CreratedOnUtc = System.DateTime.UtcNow,
-                    DisplayOrder = i,
-                    DisplayName = String.Format("Square {0}", i + 1),
-                    Id = Guid.NewGuid(),
-                    Hidden = false
-
-                };
-                var sw = CreateDefaultStopWatch(square.Id);
-                sw.CreatedOnUtc = square.CreratedOnUtc;
-                square.StopWatches.Add(sw);
+                var square = CreateDefaultUserSquare(userId);
+                square.DisplayOrder = i;
                 result.Add(square);
             }
 
@@ -90,7 +97,41 @@ namespace Squares.Services
             return result;
         }
 
+        public UserSquareViewModel GetUserSquareViewModel(string userId, Guid id)
+        {
+            var target = _context.UserSquares.SingleOrDefault(x => x.Id == id);
+            if (target == null)
+            {
+                target = CreateDefaultUserSquare(userId);
+                target.DisplayOrder = _context.UserSquares.Where(x => x.UserId == userId).Max(x => x.DisplayOrder) + 1;
+                _context.UserSquares.Add(target);
+                _context.SaveChanges();
+            }
+            var result = new UserSquareViewModel
+            {
+                Id = target.Id,
+                Name = target.DisplayName
 
+            };
+            var sw = target.StopWatches.OrderBy(x => x.CreatedOnUtc).Last();
+            result.StopWatch = new StopWatchModel
+            {
+                Id = sw.Id,
+                Started = sw.Started,
+                State = (ActivityStateTypes) sw.State,
+                Time = sw.Elapsed
+            };
+            return result;
+        }
+        public void SaveUserSquare(string userId, UserSquareViewModel model)
+        {
+            if (!String.IsNullOrWhiteSpace(model.Name))
+            {
+                var target = _context.UserSquares.Single(x => x.Id == model.Id);
+                target.DisplayName = model.Name.Trim();
+                _context.SaveChanges();
+            }
+        }
         public void SaveStopWatch(string userId, StopWatchModel model)
         {
            
