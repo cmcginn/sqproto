@@ -168,7 +168,7 @@
     <Compile Include="ApiControllers\ScratchController.cs" />
     <Compile Include="ApiControllers\SquareController.cs" />
     <Compile Include="ApiControllers\TimerActionController.cs" />
-    <Compile Include="ApiControllers\WatchController.cs" />
+    <Compile Include="ApiControllers\StopWatchController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
@@ -201,13 +201,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\SquareService.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="StopWatch.cs">
+      <DependentUpon>Domain.tt</DependentUpon>
+    </Compile>
     <Compile Include="UserSquare.cs">
-      <DependentUpon>Domain.tt</DependentUpon>
-    </Compile>
-    <Compile Include="UserSquareActivity.cs">
-      <DependentUpon>Domain.tt</DependentUpon>
-    </Compile>
-    <Compile Include="UserSquareActivityAction.cs">
       <DependentUpon>Domain.tt</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\ActivityStateTypes.cs" />
@@ -215,7 +212,7 @@
     <Compile Include="ViewModels\ReportItemViewModel.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\TimerActionModel.cs" />
-    <Compile Include="ViewModels\WatchModel.cs" />
+    <Compile Include="ViewModels\StopWatchModel.cs" />
     <Compile Include="ViewModels\UserSquareActionModel.cs" />
     <Compile Include="ViewModels\UserSquaresViewModel.cs" />
     <Compile Include="ViewModels\UserSquareViewModel.cs" />

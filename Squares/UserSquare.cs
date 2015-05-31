@@ -16,7 +16,7 @@ namespace Squares
     {
         public UserSquare()
         {
-            this.UserSquareActivities = new HashSet<UserSquareActivity>();
+            this.StopWatches = new HashSet<StopWatch>();
         }
     
         public System.Guid Id { get; set; }
@@ -24,9 +24,8 @@ namespace Squares
         public string DisplayName { get; set; }
         public int DisplayOrder { get; set; }
         public System.DateTime CreratedOnUtc { get; set; }
-        public int ActivityState { get; set; }
         public bool Hidden { get; set; }
     
-        public virtual ICollection<UserSquareActivity> UserSquareActivities { get; set; }
+        public virtual ICollection<StopWatch> StopWatches { get; set; }
     }
 }

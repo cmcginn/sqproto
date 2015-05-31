@@ -4,12 +4,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using Microsoft.AspNet.Identity;
+using Squares.Services;
 using Squares.ViewModels;
 
 namespace Squares.ApiControllers
 {
-    public class WatchController : ApiController
+    public class StopWatchController : ApiController
     {
+        private SquareService _service = new SquareService(new SquaresEntities());
         // GET: api/Timer
         public IEnumerable<string> Get()
         {
@@ -23,9 +26,9 @@ namespace Squares.ApiControllers
         }
 
         // POST: api/Timer
-        public void Post(WatchModel model)
+        public void Post(StopWatchModel model)
         {
-            var x = "Y";
+            _service.SaveStopWatch(User.Identity.GetUserId(), model);
         }
 
         // PUT: api/Timer/5

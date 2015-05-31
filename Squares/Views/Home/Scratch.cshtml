@@ -1,22 +1,186 @@
-﻿
+﻿<div class="row" data-bind="foreach:userSquares">
+    <div class="col-sm-4" data-bind="visible:visible">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-sm-12 text-center">
+                    <div class="input-group">
+                        <input type="text" data-bind="value:name" class="form-control" />
+                        <div class="input-group-addon">
+                            <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><small>Days</small></th>
 
 
-        @section scripts{
+                                <th><small>Hours</small></th>
 
-            <script src="~/Scripts/app/common.js"></script>
-            <script src="~/Scripts/vendor/tock.mod.js"></script>
-            <script>
-                //var timer = new Tock({
-                //    interval: 1000
-                //});
-                var watch = { time: 1000000 };
-                var timer = new Tock({
-                    interval: 1000,
-                    stateChanged:function(e) {
-                        console.log(e.state);
-        
+
+                                <th><small>Minutes</small></th>
+
+
+                                <th><small>Seconds</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control" data-bind="value:duration.days,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.hours,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.minutes,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.seconds,event:{change:onDurationEdit}" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                @*<div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick,visible:canReset">Reset</button>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onHideButtonClick,visible:canHide">Hide</button>
+                </div>*@
+            </div>
+        </div>
+    </div>
+</div>
+@*<div class="col-sm-12" data-bind="with:clock">
+    <table class="table">
+        <thead>
+            <tr>
+                <th><small>Days</small></th>
+
+
+                <th><small>Hours</small></th>
+
+
+                <th><small>Minutes</small></th>
+
+
+                <th><small>Seconds</small></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" class="form-control" data-bind="value:days" /></td>
+                <td><input type="text" class="form-control" data-bind="value:hours" /></td>
+                <td><input type="text" class="form-control" data-bind="value:minutes" /></td>
+                <td><input type="text" class="form-control" data-bind="value:seconds" /></td>
+            </tr>
+        </tbody>
+    </table>
+</div>*@
+
+@section scripts{
+
+    <script src="~/Scripts/app/common.js"></script>
+    <script src="~/Scripts/vendor/tock.mod.js"></script>
+    <script>
+        function getSquares() {
+            $.get(rootPath + 'api/Square', function(r) {
+                var vm = { userSquares: [] };
+
+                for (var i = 0; i < r.UserSquares.length; i++) {
+                    var src = r.UserSquares[i];
+                    var square = new Square(src);
+                    vm.userSquares.push(square);
+
+                }
+                viewModel = ko.mapping.fromJS(vm);
+                ko.applyBindings(viewModel);
+            });
+        }
+
+        $(function() {
+
+            getSquares();
+        });
+
+        var viewModel;
+
+        function Square(options) {
+            var settings = options;
+            var result = {
+                duration: {
+                    days: ko.observable(0),
+                    hours: ko.observable(0),
+                    minutes: ko.observable(0),
+                    seconds: ko.observable(0)
+                },
+                id: ko.observable(settings.Id),
+                name: ko.observable(settings.Name),
+                stopWatch: settings.StopWatch,
+                timer: null,
+                visible: ko.observable(true),
+
+                onDurationEdit: function() {},
+                onRenameClick: function() {},
+                onTimerTick: function() {
+                    if (result.timer) {
+                        var d = common.getDuration(result.timer.lap());
+                        result.refreshDuration(d);
                     }
 
-                });
-            </script>
+                },
+                data: function() {
+                    return {
+                        StopWatch: result.timer.data()
+                    }
+                },
+                init: function() {
+                    var timer = new Tock({ interval: 1000, callback: result.onTimerTick });
+                    timer.load(settings.StopWatch);
+                    result.timer = timer;
+                },
+                pauseTimer: function() {
+                    result.timer.pause();
+                },
+                refreshDuration: function(d) {
+                    result.duration.days(d.days);
+                    result.duration.hours(d.hours);
+                    result.duration.minutes(d.minutes);
+                    result.duration.seconds(d.seconds);
+                },
+                save: function() {
+                    result.timer.pause();
+                    var d = result.timer.data();
+
+                    $.post(rootPath + 'api/stopwatch', d, function(r, s) {
+
+                    });
+                },
+                startTimer: function() {
+                    result.timer.start();
+                }
+
+            };
+            result.init();
+            return result;
         }
+        //var vm = {
+        //    clock: { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        //};
+
+        //var viewModel = ko.mapping.fromJS(vm);
+        //ko.applyBindings(viewModel);
+        ////var timer = new Tock({
+        ////    interval: 1000
+        ////});
+        //var watch = { time: 0 };
+        //var timer = new Tock({
+        //    interval: 400,
+        //    callback: function(t) {
+        //        var d = common.getDuration(t.lap());
+        //        viewModel.clock.seconds(d.seconds);
+        //    }
+        //});
+        //timer.start();
+
+
+    </script>
+}

@@ -12,21 +12,16 @@ namespace Squares
     using System;
     using System.Collections.Generic;
     
-    public partial class UserSquareActivity
+    public partial class StopWatch
     {
-        public UserSquareActivity()
-        {
-            this.UserSquareActivityActions = new HashSet<UserSquareActivityAction>();
-        }
-    
         public System.Guid Id { get; set; }
         public System.Guid UserSquareId { get; set; }
         public System.DateTime CreatedOnUtc { get; set; }
         public Nullable<System.DateTime> LastUpdatedUtc { get; set; }
         public long Elapsed { get; set; }
-        public long Milliseconds { get; set; }
+        public long Started { get; set; }
+        public int State { get; set; }
     
-        public virtual ICollection<UserSquareActivityAction> UserSquareActivityActions { get; set; }
         public virtual UserSquare UserSquare { get; set; }
     }
 }

@@ -5,12 +5,11 @@ using System.Web;
 
 namespace Squares.ViewModels
 {
-
-    public class UserSquareViewModel
+    public class StopWatchModel
     {
-        public string Name { get; set; }
         public Guid Id { get; set; }
-        public StopWatchModel StopWatch { get; set; }
-     
+        public long Time { get; set; }
+        public long Started { get; set; }
+        public ActivityStateTypes State { get; set; }
     }
 }

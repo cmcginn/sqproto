@@ -38,28 +38,28 @@ namespace Squares.Controllers
             return View();
         }
 
-        public PartialViewResult UserSquareEdit(Guid userSquareId)
-        {
-            var model = _service.GetUserSquareViewModelById(userSquareId);
-            return PartialView("UserSquareEdit", model);
-        }
-        [HttpPost]
-        public void Rename(UserSquareViewModel model)
-        {
-            _service.RenameSquare(User.Identity.GetUserId(), model);
+        //public PartialViewResult UserSquareEdit(Guid userSquareId)
+        //{
+        //    var model = _service.GetUserSquareViewModelById(userSquareId);
+        //    return PartialView("UserSquareEdit", model);
+        //}
+        //[HttpPost]
+        //public void Rename(UserSquareViewModel model)
+        //{
+        //    _service.RenameSquare(User.Identity.GetUserId(), model);
 
-        }
+        //}
 
-        [HttpPost]
-        public JsonResult AddNewUserSquare()
-        {
-            var result = _service.AddNewUserSquare(User.Identity.GetUserId());
-            return Json(result);
-        }
-        [HttpPost]
-        public void HideUserSquare(Guid id)
-        {
-            _service.HideUserSquare(User.Identity.GetUserId(), id);
-        }
+        //[HttpPost]
+        //public JsonResult AddNewUserSquare()
+        //{
+        //    var result = _service.AddNewUserSquare(User.Identity.GetUserId());
+        //    return Json(result);
+        //}
+        //[HttpPost]
+        //public void HideUserSquare(Guid id)
+        //{
+        //    _service.HideUserSquare(User.Identity.GetUserId(), id);
+        //}
     }
 }
