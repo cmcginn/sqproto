@@ -28,10 +28,10 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><input type="text" class="form-control" data-bind="value:duration().days,event:{change:onDurationEdit}" /></td>
-                                <td><input type="text" class="form-control" data-bind="value:duration().hours,event:{change:onDurationEdit}" /></td>
-                                <td><input type="text" class="form-control" data-bind="value:duration().minutes,event:{change:onDurationEdit}" /></td>
-                                <td><input type="text" class="form-control" data-bind="value:duration().seconds,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.days,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.hours,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.minutes,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.seconds,event:{change:onDurationEdit}" /></td>
                             </tr>
                         </tbody>
                     </table>
@@ -49,7 +49,6 @@
         </div>
     </div>
 </div>
-
 <div class="row">
     <div class="col-sm-12">
         <button class="btn btn-default btn-lg" id="addNew">Add New</button>
@@ -59,33 +58,55 @@
     
 @section scripts{
 <script src="~/Scripts/app/common.js"></script>
-<script src="~/Scripts/vendor/tock.js"></script>
+<script src="~/Scripts/vendor/tock.mod.js"></script>
 <script src="~/Scripts/app/square.js"></script>
     <script>
-        var viewModel = null;
-        function addNewSquare() {
-            $.post(rootPath + 'home/AddNewUserSquare', function(r, s) {
+        function addNew() {
+            var id = '00000000-0000-0000-0000-000000000000';
+            $.get(rootPath + 'api/Square', { id: id }, function (r) {
                 var square = new Square(r);
                 viewModel.userSquares.push(square);
             });
         }
+
+        function onTimerButtonClicked(e) {
+
+            for (var i = 0; i < viewModel.userSquares().length; i++) {
+                //if any are running
+                var t = viewModel.userSquares()[i];
+                if (t.id() != e.args.id()) {
+                    if (t.data().StopWatch.State == 1) {
+
+                        t.pauseTimer();
+                        t.updateState();
+                        t.save();
+                    }
+                }
+            }
+        }
+
         function getSquares() {
             $.get(rootPath + 'api/Square', function (r) {
-
                 var vm = { userSquares: [] };
+
                 for (var i = 0; i < r.UserSquares.length; i++) {
-                    var s = new Square(r.UserSquares[i]);
-                    vm.userSquares.push(s);
+                    var src = r.UserSquares[i];
+                    var square = new Square(src);
+                    vm.userSquares.push(square);
+
                 }
                 viewModel = ko.mapping.fromJS(vm);
                 ko.applyBindings(viewModel);
             });
         }
+
         $(function () {
             getSquares();
-            $(document).on('click', '#addNew', addNewSquare);
-
+            $(document).on('click', '#addNew', addNew);
+            $(document).on('TimerStateChanged', onTimerButtonClicked);
         });
+
+        var viewModel;
     </script>
 }
                    
