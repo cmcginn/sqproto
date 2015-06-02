@@ -8,7 +8,6 @@ namespace Squares.ViewModels
     public class ActivityRecord
     {
         public Guid Id { get; set; }
-        public long StartDate { get; set; }
         public long Elapsed { get; set; }
         public long Started { get; set; }
         public long Ended { get; set; }

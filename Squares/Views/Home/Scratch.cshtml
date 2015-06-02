@@ -1,8 +1,8 @@
-﻿@*<style>
+﻿<style>
         .panel-group .panel {
             overflow: visible;
         }
-    </style>*@
+    </style>
 <div class="" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
     <div class="panel panel-default">
         <div class="panel-heading" role="tab">
@@ -215,7 +215,17 @@
 
                 },
             };
-            result.totalDurationDisplay = ko.computed(function() {
+            result.totalDurationDisplay = ko.computed(function () {
+                var t = 0;
+                for (var i = 0; i < result.activityRecords().length ; i++) {
+                    t += common.getMS(result.activityRecords()[i].duration);
+                }
+                var d = common.getDuration(t);
+                result.duration.days(d.days);
+                result.duration.hours(d.hours);
+                result.duration.minutes(d.minutes);
+                result.duration.seconds(d.seconds);
+
                 return result.duration.days() + ' Days ' + result.duration.hours() + ' Hours ' + result.duration.minutes() + ' Minutes ' + result.duration.seconds() + ' Seconds';
             }, this);
             result.init();

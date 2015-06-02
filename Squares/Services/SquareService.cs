@@ -160,6 +160,30 @@ namespace Squares.Services
 
         #region Reporting
 
+        public void ReportItemActivityRecord(ActivityRecord model)
+        {
+           var target= _context.StopWatches.SingleOrDefault(x => x.Id == model.Id);
+            if (target != null)
+            {
+                target.Elapsed = model.Elapsed;
+                target.Started = model.Started;
+                _context.SaveChanges();
+            }
+        }
+        public void SaveReportItem(ReportItemViewModel model)
+        {
+            model.TotalDuration = 0;
+            model.ActivityRecords.ForEach(x =>
+            {
+                ReportItemActivityRecord(x);
+                model.TotalDuration += x.Elapsed;
+                
+            });
+        }
+        public void SaveReportViewModel(ReportViewModel model)
+        {
+            model.ReportItems.ForEach(SaveReportItem);
+        }
         public ReportViewModel GetReportViewModelByUserId(string userId)
         {
             var result = new ReportViewModel();
