@@ -1,41 +1,173 @@
-﻿
+﻿<style>
+    .panel-group .panel {
+        overflow: visible;
+    }
+</style>
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-bind="text:name,attr:{'aria-controls':'collapse-'+$data.id(),href:'#collapse-'+$data.id()}" data-parent="#accordion" aria-expanded="true">
+                </a>
+                <span class=" glyphicon glyphicon-remove pull-right" aria-hidden="true" data-bind="click:onDeleteItemClick"></span>
+                <span class="glyphicon glyphicon-floppy-save col-sm-1 pull-right" aria-hidden="true" data-bind="click:onSaveItemClick"></span>
+                <span  class="col-sm-3 pull-right"><small data-bind="text:totalDurationDisplay"></small></span>
+            </h4>
+        </div>
+        <div class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne" data-bind="attr:{id:'collapse-'+$data.id()}">
+            <div class="panel-body">
+                <div class="row" data-bind="foreach:activityRecords">
+                    <div class="col-sm-6">
+                        <label>Start Date</label>
+                        <div class='input-group date' data-bind="attr:{'data-default':startDate().toISOString()}">
+                            <input type="text" class="form-control" data-bind="value:startDate" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <span class="badge" data-bind="text:activityState"></span>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="col-sm-3">
+                            <label>Days</label>
+                            <input type="text" class="form-control" data-bind="value:duration.days" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Hours</label>
+                            <input type="text" class="form-control" data-bind="value:duration.hours" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Minutes</label>
+                            <input type="text" class="form-control" data-bind="value:duration.minutes" />
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Seconds</label>
+                            <input type="text" class="form-control" data-bind="value:duration.seconds" />
+                        </div>
+                    </div>
 
-@*<div class="col-sm-12" data-bind="with:clock">
-    <table class="table">
-        <thead>
-            <tr>
-                <th><small>Days</small></th>
+                    <div class="col-sm-12">
+                        <a href="javascript:void(0)" data-bind="click:onDeleteActivityItemClick">Remove</a>
 
+                    </div>
 
-                <th><small>Hours</small></th>
+                </div>
 
+            </div>
+        </div>
+    </div>
 
-                <th><small>Minutes</small></th>
-
-
-                <th><small>Seconds</small></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="text" class="form-control" data-bind="value:days" /></td>
-                <td><input type="text" class="form-control" data-bind="value:hours" /></td>
-                <td><input type="text" class="form-control" data-bind="value:minutes" /></td>
-                <td><input type="text" class="form-control" data-bind="value:seconds" /></td>
-            </tr>
-        </tbody>
-    </table>
-</div>*@
+</div>
 
 @section scripts{
 
     <script src="~/Scripts/app/common.js"></script>
-    <script src="~/Scripts/vendor/tock.mod.js"></script>
     <script>
+        var data = {
+            reportItems: [
+                {
+                    Name: 'Square 1',
+                    Id: 'CF8B9C92-803E-4BAC-AFDF-E6182FE7F809',
+                    TotalDuration: 36002335,
+                    Started: 1433085209700,
+                    State: 2,
+                    ActivityRecords: [
+                        { Id: '6261DEA3-9628-4107-861F-020504C7678A', Elapsed: 36002335, Started: 1433085209700, Ended: 1433085209700 + 36002335 }
+                    ]
+                },
+                { Name: 'Square 2', Id: '8CC51702-D505-4781-B139-AA91C6A9DAF7', TotalDuration: 18302224, Started: 1433075066156, State: 2, ActivityRecords: [] },
+                { Name: 'Square 3', Id: '9776F775-EAAD-4B02-9394-58CB9FCE4920', TotalDuration: 3662175, Started: 1433089707377, State: 2, ActivityRecords: [] }
+            ]
+        }
+        var viewModel;
 
+        function getReportItems() {
+            $.get(rootPath + 'api/report', function(r) {
+                var vm = { reportItems: [] };
+                for (var i = 0; i < r.ReportItems.length; i++) {
+                    var ri = new ReportItem(r.ReportItems[i]);
+                    vm.reportItems.push(ri);
+                }
+                viewModel = ko.mapping.fromJS(vm);
+                ko.applyBindings(viewModel);
+            });
+            
+        }
 
-        
+//function getReportItems() {
+        //    var vm = { reportItems: [] };
+        //    for (var i = 0; i < data.reportItems.length; i++) {
+        //        var ri = new ReportItem(data.reportItems[i]);
+        //        vm.reportItems.push(ri);
+        //    }
+        //    viewModel = ko.mapping.fromJS(vm);
+        //    ko.applyBindings(viewModel);
+        //}
 
+        function ActivityRecord(options) {
+            var settings = options;
+            var duration = common.getDuration(settings.Elapsed);
+            var result = {
+                activityState: ko.observable('Paused'),
+                duration: {
+                    days: ko.observable(duration.days),
+                    hours: ko.observable(duration.hours),
+                    minutes: ko.observable(duration.minutes),
+                    seconds: ko.observable(duration.seconds)
+                },
+                id: ko.observable(settings.Id),
+                elapsed: ko.observable(settings.Elapsed),
+                started: ko.observable(settings.Started),
+                ended: ko.observable(settings.Ended),
+                startDate: ko.observable(new Date(settings.Started)),
 
+                init: function() {},
+                onDeleteActivityItemClick: function() {}
+            };
+
+            result.init();
+            return result;
+        }
+
+        function ReportItem(options) {
+            var settings = options;
+            var duration = common.getDuration(settings.TotalDuration);
+
+            var activityRecords = [];
+            for (var i = 0; i < settings.ActivityRecords.length; i++) {
+                var ar = new ActivityRecord(settings.ActivityRecords[i]);
+                activityRecords.push(ar);
+            }
+            var result = {
+                activityRecords: (ko.observable(activityRecords)),
+                duration: {
+                    days: ko.observable(duration.days),
+                    hours: ko.observable(duration.hours),
+                    minutes: ko.observable(duration.minutes),
+                    seconds: ko.observable(duration.seconds)
+                },
+                id: ko.observable(settings.Id),
+                name: ko.observable(settings.Name),
+                started: ko.observable(settings.Started),
+                state: ko.observable(settings.State),
+                totalDuration: ko.observable(settings.TotalDuration),
+
+                init: function() {},
+                onDeleteItemClick: function() {},
+                onSaveItemClick: function() {},
+            };
+            result.totalDurationDisplay = ko.computed(function() {
+                return result.duration.days() + ' Days ' + result.duration.hours() + ' Hours ' + result.duration.minutes() + ' Minutes ' + result.duration.seconds() + ' Seconds';
+            }, this);
+            result.init();
+            return result;
+        }
+
+        $(function() {
+            getReportItems();
+        });
     </script>
+
 }

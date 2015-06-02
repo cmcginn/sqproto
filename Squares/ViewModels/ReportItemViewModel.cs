@@ -7,12 +7,12 @@ namespace Squares.ViewModels
 {
     public class ActivityRecord
     {
-        public Guid UserSquareId { get; set; }
         public Guid Id { get; set; }
         public long StartDate { get; set; }
-        public Duration Duration { get; set; }
-
-        public string ActivityState { get; set; }
+        public long Elapsed { get; set; }
+        public long Started { get; set; }
+        public long Ended { get; set; }
+       
     }
     public class ReportItemViewModel
     {
@@ -21,10 +21,9 @@ namespace Squares.ViewModels
 
         public long TotalDuration { get; set; }
 
-        public long MinDate { get; set; }
+        public long Started { get; set; }
 
-        public long MaxDate { get; set; }
-
+        public ActivityStateTypes State { get; set; }
         public bool IsDeleted { get; set; }
         public List<ActivityRecord> ActivityRecords
         {

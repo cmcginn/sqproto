@@ -10,6 +10,7 @@ namespace Squares.Services
 {
     public class SquareService
     {
+        #region Squares
         private readonly SquaresEntities _context;
         public SquareService(SquaresEntities context)
         {
@@ -114,6 +115,7 @@ namespace Squares.Services
 
             };
             var sw = target.StopWatches.OrderBy(x => x.CreatedOnUtc).Last();
+            //TODO:Need to handle navigate back if state == 1
             result.StopWatch = new StopWatchModel
             {
                 Id = sw.Id,
@@ -152,8 +154,41 @@ namespace Squares.Services
                     
                 }
                 _context.SaveChanges();
-           
+
         }
+        #endregion
+
+        #region Reporting
+
+        public ReportViewModel GetReportViewModelByUserId(string userId)
+        {
+            var result = new ReportViewModel();
+            var src = _context.UserSquares.Where(x => x.UserId == userId).ToList();
+            src.ForEach(rpt =>
+            {
+                var item = new ReportItemViewModel();
+                item.Name = rpt.DisplayName;
+                item.Id = rpt.Id;
+
+                item.Started = rpt.StopWatches.Min(x => x.Started);
+                var last = rpt.StopWatches.OrderBy(x => x.Started).Last();
+                item.State = (ActivityStateTypes) last.State;
+                item.TotalDuration = rpt.StopWatches.Sum(x => x.Elapsed);
+
+                rpt.StopWatches.ForEach(rptActivity =>
+                {
+                    var activity = new ActivityRecord();
+                    activity.Elapsed = rptActivity.Elapsed;
+                    activity.Started = rptActivity.Started;
+                    activity.Ended = activity.Started + activity.Elapsed;
+                    activity.Id = rptActivity.Id;
+                    item.ActivityRecords.Add(activity);
+                });
+                result.ReportItems.Add(item);
+            });
+            return result;
+        }
+        #endregion
     }
 
 
