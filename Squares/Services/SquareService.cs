@@ -182,6 +182,7 @@ namespace Squares.Services
                     activity.Started = rptActivity.Started;
                     activity.Ended = activity.Started + activity.Elapsed;
                     activity.Id = rptActivity.Id;
+                    activity.State = (ActivityStateTypes) rptActivity.State;
                     item.ActivityRecords.Add(activity);
                 });
                 result.ReportItems.Add(item);

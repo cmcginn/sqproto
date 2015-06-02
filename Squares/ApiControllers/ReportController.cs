@@ -28,7 +28,7 @@ namespace Squares.ApiControllers
         // POST: api/Report
         public void Post(ReportItemViewModel model)
         {
-            throw new System.NotImplementedException();
+            var x = "Y"; //throw new System.NotImplementedException();
         }
 
         // PUT: api/Report/5

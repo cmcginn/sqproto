@@ -21,10 +21,27 @@
 
         // what's left is seconds
         var seconds = Math.floor(delta % 60);
-
+      
         var result = { days: days, hours: hours, minutes: minutes, seconds: seconds,milliseconds:ms };
 
         return result;
+    },
+    getMS:function(duration) {
+      
+        var d = 0;
+        if (typeof duration.days == typeof(Function)) {
+            d += Number(duration.days()) * 86400000;
+            d += Number(duration.hours()) * 3600000;
+            d += Number(duration.minutes()) * 60000;
+            d += Number(duration.seconds()) * 1000;
+        } else {
+            d += Number(duration.days) * 86400000;
+            d += Number(duration.hours) * 3600000;
+            d += Number(duration.minutes) * 60000;
+            d += Number(duration.seconds) * 1000;
+        }
+        return d;
+        
     }
     
 }
