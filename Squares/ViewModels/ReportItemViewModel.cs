@@ -11,6 +11,8 @@ namespace Squares.ViewModels
         public long Elapsed { get; set; }
         public long Started { get; set; }
         public long Ended { get; set; }
+
+        public bool IsDeleted { get; set; }
         public ActivityStateTypes State { get; set; }
     }
     public class ReportItemViewModel

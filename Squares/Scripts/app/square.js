@@ -15,13 +15,12 @@
             minutes: ko.observable(t.minutes),
             seconds: ko.observable(t.seconds)
         },
+        visible:ko.observable(!settings.IsHidden),
         id: ko.observable(settings.Id),
         name: ko.observable(settings.Name),
         stopWatch: settings.StopWatch,
         timer: null,
         timerButtonDisplay: ko.observable(''),
-        visible: ko.observable(true),
-
         onDurationEdit: function () {
             var d = 0;
             d += Number(result.duration.days()) * 86400000;
@@ -31,7 +30,11 @@
             result.timer.modify(d);
             result.save();
         },
-        onHideButtonClick: function () { },
+        onHideButtonClick: function() {
+            result.visible(false);
+            var d = result.data();
+            $.post(rootPath + 'api/Square',d, function(r) {});
+        },
         onRenameClick: function () {
             var d = result.data();
             $.post(rootPath + 'api/Square', d, function (r) { });
@@ -82,7 +85,8 @@
             return {
                 StopWatch: result.timer.data(),
                 Name: result.name(),
-                Id: result.id()
+                Id: result.id(),
+                IsHidden:!result.visible()
             };
         },
 

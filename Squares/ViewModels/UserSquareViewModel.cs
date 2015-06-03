@@ -11,6 +11,7 @@ namespace Squares.ViewModels
         public string Name { get; set; }
         public Guid Id { get; set; }
         public StopWatchModel StopWatch { get; set; }
-     
+
+        public bool IsHidden { get; set; }
     }
 }

@@ -65,7 +65,7 @@ namespace Squares.Services
         public UserSquaresViewModel GetUserSquaresViewModelByUserId(string userId)
         {
             var result = new UserSquaresViewModel { UserSquares = new List<UserSquareViewModel>() };
-            var userSquares = _context.UserSquares.Where(x => x.UserId == userId & !x.Hidden).ToList();
+            var userSquares = _context.UserSquares.Where(x => x.UserId == userId).ToList();
             if (!userSquares.Any())
             {
                 userSquares = CreateDefaultUserSquares(userId);
@@ -74,7 +74,7 @@ namespace Squares.Services
                 userSquares = _context.UserSquares.Where(x => x.UserId == userId).ToList();
 
             }
-
+            userSquares = userSquares.Where(x => !x.Hidden).ToList();
             userSquares.OrderBy(x => x.DisplayOrder).ToList().ForEach(us =>
             {
                 var thisDate =
@@ -84,7 +84,13 @@ namespace Squares.Services
                     Id = us.Id,
                     Name = us.DisplayName,
                 };
-                var sw = us.StopWatches.OrderBy(x => x.CreatedOnUtc).ToList().Last();
+                var sw = us.StopWatches.OrderBy(x => x.CreatedOnUtc).ToList().LastOrDefault();
+                if (sw == null)
+                {
+                    sw = CreateDefaultStopWatch(us.Id);
+                    _context.StopWatches.Add(sw);
+                    _context.SaveChanges();
+                }
                 userSquareModel.StopWatch = new StopWatchModel
                 {
                     Id = sw.Id,
@@ -114,7 +120,8 @@ namespace Squares.Services
                 Name = target.DisplayName
 
             };
-            var sw = target.StopWatches.OrderBy(x => x.CreatedOnUtc).Last();
+            var sw = target.StopWatches.OrderBy(x => x.CreatedOnUtc).LastOrDefault();
+
             //TODO:Need to handle navigate back if state == 1
             result.StopWatch = new StopWatchModel
             {
@@ -131,6 +138,7 @@ namespace Squares.Services
             {
                 var target = _context.UserSquares.Single(x => x.Id == model.Id);
                 target.DisplayName = model.Name.Trim();
+                target.Hidden = model.IsHidden;
                 _context.SaveChanges();
             }
         }
@@ -165,20 +173,38 @@ namespace Squares.Services
            var target= _context.StopWatches.SingleOrDefault(x => x.Id == model.Id);
             if (target != null)
             {
-                target.Elapsed = model.Elapsed;
-                target.Started = model.Started;
+                if (model.IsDeleted)
+                {
+     
+                    _context.StopWatches.Remove(target);
+                }
+                else
+                {
+                    target.Elapsed = model.Elapsed;
+                    target.Started = model.Started;
+                }
                 _context.SaveChanges();
             }
         }
         public void SaveReportItem(ReportItemViewModel model)
         {
-            model.TotalDuration = 0;
-            model.ActivityRecords.ForEach(x =>
+            if (model.IsDeleted)
             {
-                ReportItemActivityRecord(x);
-                model.TotalDuration += x.Elapsed;
-                
-            });
+                var target = _context.UserSquares.Single(x => x.Id == model.Id);
+                _context.UserSquares.Remove(target);
+                _context.SaveChanges();
+            }
+            else
+            {
+                model.TotalDuration = 0;
+                model.ActivityRecords.ForEach(x =>
+                {
+                    ReportItemActivityRecord(x);
+                    model.TotalDuration += x.Elapsed;
+
+                });
+            }
+
         }
         public void SaveReportViewModel(ReportViewModel model)
         {
@@ -187,28 +213,31 @@ namespace Squares.Services
         public ReportViewModel GetReportViewModelByUserId(string userId)
         {
             var result = new ReportViewModel();
-            var src = _context.UserSquares.Where(x => x.UserId == userId).ToList();
+            var src = _context.UserSquares.Where(x => x.UserId == userId &! x.Hidden).ToList();
             src.ForEach(rpt =>
             {
                 var item = new ReportItemViewModel();
                 item.Name = rpt.DisplayName;
                 item.Id = rpt.Id;
-
-                item.Started = rpt.StopWatches.Min(x => x.Started);
-                var last = rpt.StopWatches.OrderBy(x => x.Started).Last();
-                item.State = (ActivityStateTypes) last.State;
-                item.TotalDuration = rpt.StopWatches.Sum(x => x.Elapsed);
-
-                rpt.StopWatches.ForEach(rptActivity =>
+                if (rpt.StopWatches.Any())
                 {
-                    var activity = new ActivityRecord();
-                    activity.Elapsed = rptActivity.Elapsed;
-                    activity.Started = rptActivity.Started;
-                    activity.Ended = activity.Started + activity.Elapsed;
-                    activity.Id = rptActivity.Id;
-                    activity.State = (ActivityStateTypes) rptActivity.State;
-                    item.ActivityRecords.Add(activity);
-                });
+                    item.Started = rpt.StopWatches.Min(x => x.Started);
+                    var last = rpt.StopWatches.OrderBy(x => x.Started).Last();
+                    item.State = (ActivityStateTypes)last.State;
+                    item.TotalDuration = rpt.StopWatches.Sum(x => x.Elapsed);
+
+                    rpt.StopWatches.ForEach(rptActivity =>
+                    {
+                        var activity = new ActivityRecord();
+                        activity.Elapsed = rptActivity.Elapsed;
+                        activity.Started = rptActivity.Started;
+                        activity.Ended = activity.Started + activity.Elapsed;
+                        activity.Id = rptActivity.Id;
+                        activity.State = (ActivityStateTypes)rptActivity.State;
+                        item.ActivityRecords.Add(activity);
+                    });
+                }
+               
                 result.ReportItems.Add(item);
             });
             return result;

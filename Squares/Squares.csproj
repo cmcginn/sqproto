@@ -237,6 +237,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\app\common.js" />
     <Content Include="Scripts\app\model.js" />
+    <Content Include="Scripts\app\reporting.js" />
     <Content Include="Scripts\app\scratch.js" />
     <Content Include="Scripts\app\squares.js" />
     <Content Include="Scripts\bootstrap.js" />
