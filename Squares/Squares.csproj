@@ -167,6 +167,7 @@
     <Compile Include="ApiControllers\ReportController.cs" />
     <Compile Include="ApiControllers\ScratchController.cs" />
     <Compile Include="ApiControllers\SquareController.cs" />
+    <Compile Include="ApiControllers\SyncController.cs" />
     <Compile Include="ApiControllers\TimerActionController.cs" />
     <Compile Include="ApiControllers\StopWatchController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />

@@ -57,16 +57,16 @@
 
     
 @section scripts{
-<script src="~/Scripts/app/common.js"></script>
-<script src="~/Scripts/vendor/tock.mod.js"></script>
-<script src="~/Scripts/app/square.js"></script>
+    <script src="~/Scripts/app/common.js"></script>
+    <script src="~/Scripts/vendor/tock.mod.js"></script>
+    <script src="~/Scripts/app/square.js"></script>
     <script>
-       
-        $.ajaxSetup({cache: false});
-        $(function () {
+
+        $.ajaxSetup({ cache: false });
+        $(function() {
             function addNew() {
                 var id = '00000000-0000-0000-0000-000000000000';
-                $.get(rootPath + 'api/Square', { id: id }, function (r) {
+                $.get(rootPath + 'api/Square', { id: id }, function(r) {
                     var square = new Square(r);
                     viewModel.userSquares.push(square);
                 });
@@ -88,14 +88,15 @@
                 }
             }
 
-           
+
             console.log('here');
-            
+
             $(document).on('click', '#addNew', addNew);
             $(document).on('TimerStateChanged', onTimerButtonClicked);
         });
+
         function getSquares() {
-            $.get(rootPath + 'api/Square', function (r) {
+            $.get(rootPath + 'api/Square', function(r) {
                 var vm = { userSquares: [] };
 
                 for (var i = 0; i < r.UserSquares.length; i++) {
@@ -108,8 +109,18 @@
                 ko.applyBindings(viewModel);
             });
         }
+
         getSquares();
         var viewModel;
+
+
+        setInterval(function() {
+            if ($.cookie('refresh') && $.cookie('refresh') == "true") {
+                $.cookie('refresh', false);
+                location.reload();
+            }
+        }, 2000);
+
     </script>
 }
                    

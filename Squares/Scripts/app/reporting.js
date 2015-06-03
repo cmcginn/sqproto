@@ -89,7 +89,6 @@ function ReportItem(options) {
                 IsDeleted:result.isDeleted()
             };
             for (var i = 0; i < result.activityRecords().length; i++) {
-                if (!result.activityRecords()[i].isDeleted())
                     r.ActivityRecords.push(result.activityRecords()[i].data());
             }
             return r;
@@ -101,13 +100,13 @@ function ReportItem(options) {
             result.isDeleted(true);
             var d = result.data();
             $.post(rootPath + 'api/Report', d, function (r) {
-                
+                $.cookie('refresh',true);
             });
         },
         onSaveItemClick: function () {
             var d = result.data();
             $.post(rootPath + 'api/Report', d, function(r) {
-                
+                $.cookie('refresh', true);
             });
 
         },
