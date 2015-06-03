@@ -1,169 +1,148 @@
-﻿function lpad(originalstr, length, strToPad) {
-    while (originalstr.length < length)
-        originalstr = strToPad + originalstr;
-    return originalstr;
-}
-function getDuration(ms) {
-
-    var delta = Math.abs(ms) / 1000;
-
-    // calculate (and subtract) whole days
-    var days = Math.floor(delta / 86400);
-    delta -= days * 86400;
-
-    // calculate (and subtract) whole hours
-    var hours = Math.floor(delta / 3600) % 24;
-    delta -= hours * 3600;
-
-    // calculate (and subtract) whole minutes
-    var minutes = Math.floor(delta / 60) % 60;
-    delta -= minutes * 60;
-
-    // what's left is seconds
-    var seconds = Math.floor(delta % 60);
-
-    var result = { days: days, hours: hours, minutes: minutes, seconds: seconds, milliseconds:ms };
-
-    return result;
-}
-function toMS(d) {
-    var ms = 0;
-    ms += d.days * 86400000;
-    ms += d.hours * 3600000;
-    ms += d.minutes * 60000;
-    ms += d.seconds * 1000;
-    return ms;
-}
-var Square = function (options) {
-    var settings = options || {};
+﻿function Square(options) {
+    var settings = options;
+    //need to resume
+    if (settings.StopWatch.State == 1) {
+        settings.StopWatch.Time = Date.now() - settings.StopWatch.Started;
+    }
+    var t = common.getDuration(settings.StopWatch.Time);
 
     var result = {
-        id: ko.observable(settings.Id),
-        elapsed: ko.observable(settings.Elapsed),
-        started: ko.observable(settings.Elapsed),
-        startDate: ko.observable(settings.StartDate),
-        duration: ko.observable({ days: settings.Duration.Days, hours: settings.Duration.Hours, minutes: settings.Duration.Minutes, seconds: settings.Duration.Seconds, milliseconds: settings.Duration.Milliseconds }),
-        days: ko.observable(settings.Duration.Days),
-        hours: ko.observable(settings.Duration.Hours),
-        minutes: ko.observable(settings.Duration.Minutes),
-        seconds: ko.observable(settings.Duration.Seconds),
-        milliseconds: ko.observable(Number(settings.Duration.Milliseconds)),
-        enabled:ko.observable(true),
-        timer: null,
-        activityState: ko.observable(settings.ActivityState),
-        availableState:ko.observable(''),
-        name: ko.observable(settings.Name),
-        setAvailableState:function () {
-            var r = 'Start';
-            switch (result.activityState()) {
-                case 0:
-                case 2:
-                    r = 'Start';
-                    break;
-                case 1:
-                    r = 'Pause';
-                    break;
-                default:
-                    break;
-            }
-            result.availableState(r);
-        },
-        value: null,
-        canReset: ko.observable(false),
         canHide: ko.observable(false),
-        visible: ko.observable(settings.Visible),
-        onHideClick: function() {
-            $.event.trigger({ type: 'hideClicked', args: result, time: new Date() });
+        canReset: ko.observable(false),
+        duration: {
+            days: ko.observable(t.days),
+            hours: ko.observable(t.hours),
+            minutes: ko.observable(t.minutes),
+            seconds: ko.observable(t.seconds)
         },
-        onResetClick:function() {
-            $.event.trigger({ type: 'resetClicked', args: result, time: new Date() });
+        visible:ko.observable(!settings.IsHidden),
+        id: ko.observable(settings.Id),
+        name: ko.observable(settings.Name),
+        stopWatch: settings.StopWatch,
+        timer: null,
+        timerButtonDisplay: ko.observable(''),
+        onDurationEdit: function () {
+            var d = 0;
+            d += Number(result.duration.days()) * 86400000;
+            d += Number(result.duration.hours()) * 3600000;
+            d += Number(result.duration.minutes()) * 60000;
+            d += Number(result.duration.seconds()) * 1000;
+            result.timer.modify(d);
+            result.save();
         },
-        onSquareClick: function () {
-
-            switch (result.activityState()) {
+        onHideButtonClick: function() {
+            result.visible(false);
+            var d = result.data();
+            $.post(rootPath + 'api/Square',d, function(r) {});
+        },
+        onRenameClick: function () {
+            var d = result.data();
+            $.post(rootPath + 'api/Square', d, function (r) { });
+        },
+        onTimerButtonClick: function () {
+            switch (result.timer.state) {
                 case 0:
-                    result.startDate(new Date().getTime());
+                case 3:
                     result.startTimer();
+                    result.save();
                     break;
                 case 1:
                     result.pauseTimer();
+                    result.save();
                     break;
                 case 2:
-                    result.startDate(new Date().getTime());
-                    result.resumeTimer();
+                    result.startTimer();
+                    result.save();
                     break;
                 default:
                     break;
             }
-            //can reset if started or paused
-            result.canReset(result.activityState() > 1);
-            result.canHide(result.activityState() != 1);
-            result.setAvailableState();
-            $.event.trigger({ type: 'squareClicked', args: result, time: new Date() });
+            result.updateState();
+            $.event.trigger({ type: 'TimerStateChanged', args: result, time: new Date() });
         },
-        onTimeChanged: function () {
-            var duration = { days: result.days(), hours: result.hours(), minutes: result.minutes(), seconds: result.seconds() };
-            var ms = toMS(duration);
-            result.duration(getDuration(ms));
+        onTimerButtonResetClick: function () {
+            result.timer.stop();
+            var d = result.timer.data();
+
+            $.post(rootPath + 'api/stopwatch', d, function (r) {
+                //do timer stuffs
+                result.timer.reset();
+                result.stopWatch = r;
+                result.timer.load(result.stopWatch);
+                result.refreshDuration(common.getDuration(0));
+                result.updateState(result.timer.state);
+            });
         },
-        onRenameClick: function() {
-            $.event.trigger({ type: 'renameClicked', args: result, time: new Date() });
+        onTimerTick: function () {
+            if (result.timer) {
+                var d = common.getDuration(result.timer.lap());
+                result.refreshDuration(d);
+            }
+
         },
-        onTick: function () {
-            
-            result.elapsed(result.timer.lap());
-            var duration = getDuration(result.duration().milliseconds + result.timer.lap());
-            result.days(duration.days);
-            result.hours(duration.hours);
-            result.minutes(duration.minutes);
-            result.seconds(duration.seconds);
-            result.milliseconds(duration.milliseconds);
-           
+
+        data: function () {
+            return {
+                StopWatch: result.timer.data(),
+                Name: result.name(),
+                Id: result.id(),
+                IsHidden:!result.visible()
+            };
         },
+
         init: function () {
-           
-            result.timer = new Tock({ interval: 1000, callback: result.onTick });
-            result.canReset(result.activityState() > 1);
-            result.canHide(result.activityState() != 1);
-            result.setAvailableState();
-            
-        },
-        startTimer:function() {
-            result.timer.start();
-            result.activityState(1);
-            result.enabled(false);
+            var timer = new Tock({ interval: 1000, callback: result.onTimerTick });
+            timer.load(settings.StopWatch);
+            result.timer = timer;
+            result.updateState();
         },
         pauseTimer: function () {
             result.timer.pause();
-            result.activityState(2);
-            result.enabled(true);
         },
-        resumeTimer:function() {
-            result.timer.start(result.timer.lap());
-            result.activityState(1);
-            result.enabled(false);
+        refreshDuration: function (d) {
+            result.duration.days(d.days);
+            result.duration.hours(d.hours);
+            result.duration.minutes(d.minutes);
+            result.duration.seconds(d.seconds);
         },
-        stopTimer: function() {
-            result.timer.stop();
-            result.elapsed(0);
-            result.activityState(0);
-            result.duration(getDuration(0));
-            result.enabled(true);
+        save: function () {
 
+            var d = result.timer.data();
+            $.post(rootPath + 'api/stopwatch', d, function (r, s) { });
         },
-        toData: function() {
-            return{
-                Elapsed: result.elapsed(),
-                Id: result.id(),
-                Name: result.name(),
-                ActivityState: result.activityState(),
-                StartDate: result.startDate(),
-                Duration:result.duration()
-            };
+        startTimer: function () {
+            result.timer.start();
+        },
+        updateState: function () {
+            switch (result.timer.state) {
+                case 0:
+                    result.timerButtonDisplay('Start');
+                    result.canReset(false);
+                    result.canHide(true);
+                    break;
+                case 1:
+                    result.timerButtonDisplay('Pause');
+                    result.canReset(false);
+                    result.canHide(false);
+                    break;
+                case 2:
+                    result.timerButtonDisplay('Resume');
+                    result.canReset(true);
+                    result.canHide(true);
+                    break;
+                case 3:
+                    result.timerButtonDisplay('Start');
+                    result.canReset(false);
+                    result.canHide(true);
+                    break;
+                default:
+                    break;
+
+            }
         }
 
     };
-   
+
     result.init();
     return result;
 }

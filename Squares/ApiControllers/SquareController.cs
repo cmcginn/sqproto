@@ -21,18 +21,17 @@ namespace Squares.ApiControllers
         }
 
         // GET: api/Square/5
-        public UserSquareViewModel Get(int id)
+        public UserSquareViewModel Get(Guid id)
         {
-            var model = _service.AddNewUserSquare(User.Identity.GetUserId());
-            return model;
+            return _service.GetUserSquareViewModel(User.Identity.GetUserId(), id);
         }
 
-         //POST: api/Square
-        public void Post(UserSquaresViewModel model)
+        //POST: api/Square
+        public UserSquareViewModel Post(UserSquareViewModel model)
         {
-            model.UserId = User.Identity.GetUserId();
-            _service.SaveUserSquaresViewModel(model);
-        
+            _service.SaveUserSquare(User.Identity.GetUserId(), model);
+            return model;
+
         }
 
         // PUT: api/Square/5
@@ -46,6 +45,6 @@ namespace Squares.ApiControllers
         }
 
 
-    
+
     }
 }

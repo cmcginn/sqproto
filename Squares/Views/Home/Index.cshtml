@@ -1,138 +1,126 @@
-﻿<div class="row">
-    <div class="col-sm-12">
-        <div data-bind="foreach:UserSquares" class="row">
-            <div class="col-sm-4" data-bind="visible:visible">
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <div class="col-sm-12 text-center">
-                            <div class="input-group">
-                                <input type="text" data-bind="value:name" class="form-control" />
-                                <div class="input-group-addon">
-                                    <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-12 text-center">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th><small>Days</small></th>
-
-
-                                        <th><small>Hours</small></th>
-
-
-                                        <th><small>Minutes</small></th>
-
-
-                                        <th><small>Seconds</small></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input type="text" class="form-control" data-bind="value:days,enable:enabled" /></td>
-                                        <td><input type="text" class="form-control" data-bind="value:hours,enable:enabled" /></td>
-                                        <td><input type="text" class="form-control" data-bind="value:minutes,enable:enabled,event:{change:onTimeChanged}" /></td>
-                                        <td><input type="text" class="form-control" data-bind="value:seconds,enable:enabled"/></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="col-sm-12 text-center">
-                            <button class="btn btn-block btn-default" data-bind="click:onSquareClick"><h3 data-bind="text:availableState"></h3></button>
-                        </div>
-                        <div class="col-sm-12 text-center" data-bind="visible:canReset">
-                            <div class="btn btn-sm btn-default" data-bind="click:onResetClick">Reset</div>
-                        </div>
-                        <div class="col-sm-12 text-center" data-bind="visible:canHide">
-                            <div class="btn btn-sm btn-default" data-bind="click:onHideClick">Hide</div>
+﻿<div class="row" data-bind="foreach:userSquares">
+    <div class="col-sm-4" data-bind="visible:visible">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-sm-12 text-center">
+                    <div class="input-group">
+                        <input type="text" data-bind="value:name" class="form-control" />
+                        <div class="input-group-addon">
+                            <a href="javascript:void(0)" data-bind="click:onRenameClick"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a>
                         </div>
                     </div>
                 </div>
-            </div>
+                <div class="col-sm-12">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><small>Days</small></th>
 
-        </div>
-        <div class="row">
-            <div class="col-sm-12">
-                <button id="addNew">Add</button>
+
+                                <th><small>Hours</small></th>
+
+
+                                <th><small>Minutes</small></th>
+
+
+                                <th><small>Seconds</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control" data-bind="value:duration.days,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.hours,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.minutes,event:{change:onDurationEdit}" /></td>
+                                <td><input type="text" class="form-control" data-bind="value:duration.seconds,event:{change:onDurationEdit}" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonClick,text:timerButtonDisplay"></button>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onTimerButtonResetClick,visible:canReset">Reset</button>
+                </div>
+                <div class="col-sm-12">
+                    <button class="btn btn-block btn-default" data-bind="click:onHideButtonClick,visible:canHide">Hide</button>
+                </div>
             </div>
         </div>
     </div>
-    @section scripts{
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <button class="btn btn-default btn-lg" id="addNew">Add New</button>
+    </div>
 </div>
 
-    <script src="~/Scripts/vendor/tock.js"></script>
-    @*<script src="~/Scripts/app/model.js"></script>*@
+    
+@section scripts{
+    <script src="~/Scripts/app/common.js"></script>
+    <script src="~/Scripts/vendor/tock.mod.js"></script>
     <script src="~/Scripts/app/square.js"></script>
     <script>
-        var viewModel = {};
-        function stopSquares(e) {
-            var data = { UserSquares: [] };
-            for (var i = 0; i < viewModel.UserSquares().length; i++) {
 
-                if (viewModel.UserSquares()[i].id() != e.args.id()) {
-                    viewModel.UserSquares()[i].pauseTimer();
+        $.ajaxSetup({ cache: false });
+        $(function() {
+            function addNew() {
+                var id = '00000000-0000-0000-0000-000000000000';
+                $.get(rootPath + 'api/Square', { id: id }, function(r) {
+                    var square = new Square(r);
+                    viewModel.userSquares.push(square);
+                });
+            }
+
+            function onTimerButtonClicked(e) {
+
+                for (var i = 0; i < viewModel.userSquares().length; i++) {
+                    //if any are running
+                    var t = viewModel.userSquares()[i];
+                    if (t.id() != e.args.id()) {
+                        if (t.data().StopWatch.State == 1) {
+
+                            t.pauseTimer();
+                            t.updateState();
+                            t.save();
+                        }
+                    }
                 }
-                data.UserSquares.push(viewModel.UserSquares()[i].toData());
             }
 
 
-            $.post(rootPath + 'api/Square', data, function (r, s) {
+            console.log('here');
 
-            });
-        }
+            $(document).on('click', '#addNew', addNew);
+            $(document).on('TimerStateChanged', onTimerButtonClicked);
+        });
 
-        function resetSquare(e) {
-            $.post(rootPath + 'Home/ResetTimer/' + e.args.id(), function (r, s) {
-
-                e.args.stopTimer();
-            });
-        }
-
-        function renameSquare(e) {
-
-            var data = e.args.toData();
-            $.post(rootPath + 'Home/Rename', data, function(r, s) {
-
-            });
-        }
-
-        function addSquare() {
-
-            $.get(rootPath + 'api/Square/0', function(r, s) {
-                var square = new Square(r);
-                viewModel.UserSquares.push(square);
-            });
-
-        }
-        function hideSquare(e) {
-            $.post(rootPath + 'Home/HideUserSquare/' +e.args.id() , function (r, s) {
-                e.args.visible(false);
-            });
-        }
-        $(function () {
-
-            $.get(rootPath + 'api/Square', function (r, s) {
+        function getSquares() {
+            $.get(rootPath + 'api/Square', function(r) {
+                var vm = { userSquares: [] };
 
                 for (var i = 0; i < r.UserSquares.length; i++) {
-                    var vm = r;
-                    r.UserSquares[i] = new Square(r.UserSquares[i]);
-                    console.log(r.UserSquares[i].activityState());
-                    if (r.UserSquares[i].activityState() == 1) {
-                        r.UserSquares[i].resumeTimer();
-                    }
+                    var src = r.UserSquares[i];
+                    var square = new Square(src);
+                    vm.userSquares.push(square);
+
                 }
                 viewModel = ko.mapping.fromJS(vm);
                 ko.applyBindings(viewModel);
- 
-                $(document).on('squareClicked', stopSquares)
-                    .on('resetClicked', resetSquare)
-                    .on('renameClicked', renameSquare)
-                    .on('hideClicked',hideSquare)
-                    .on('click','#addNew',addSquare);
             });
+        }
 
-        });
+        getSquares();
+        var viewModel;
+
+
+        setInterval(function() {
+            if ($.cookie('refresh') && $.cookie('refresh') == "true") {
+                $.cookie('refresh', false);
+                location.reload();
+            }
+        }, 2000);
 
     </script>
-    }
+}
+                   

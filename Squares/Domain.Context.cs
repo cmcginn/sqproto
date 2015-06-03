@@ -25,7 +25,7 @@ namespace Squares
             throw new UnintentionalCodeFirstException();
         }
     
+        public virtual DbSet<StopWatch> StopWatches { get; set; }
         public virtual DbSet<UserSquare> UserSquares { get; set; }
-        public virtual DbSet<UserSquareActivity> UserSquareActivities { get; set; }
     }
 }

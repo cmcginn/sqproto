@@ -8,7 +8,7 @@ namespace Squares.ViewModels
     public class UserSquaresViewModel
     {
         private List<UserSquareViewModel> _UserSquares;
-        public string UserId { get; set; }
+
         public List<UserSquareViewModel> UserSquares
         {
             get { return _UserSquares; }

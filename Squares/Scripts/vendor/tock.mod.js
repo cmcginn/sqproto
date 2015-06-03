@@ -28,6 +28,21 @@ if (typeof Function.prototype.bind != 'function') {
         root.Tock = factory();
     }
 }(this, function () {
+    function _guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+              .toString(16)
+              .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+          s4() + '-' + s4() + s4() + s4();
+    }
+
+    /*custom*/
+    function _changeState(s) {
+        this.state = s;
+        this.stateChanged(this);
+    }
 
     /**
      * Called every tick for countdown clocks.
@@ -84,7 +99,18 @@ if (typeof Function.prototype.bind != 'function') {
         this.go = true;
         _tick.call(this);
     }
+    function _stopTimer() {
+        this.pause_time = this.lap();
+        this.go = false;
 
+        window.clearTimeout(this.timeout);
+
+        if (this.countdown) {
+            this.final_time = this.duration_ms - this.time;
+        } else {
+            this.final_time = (Date.now() - this.start_time);
+        }
+    }
     var MILLISECONDS_RE = /^\s*(\+|-)?\d+\s*$/,
         MM_SS_RE = /^(\d{2}):(\d{2})$/,
         MM_SS_ms_OR_HH_MM_SS_RE = /^(\d{2}):(\d{2})(?::|\.)(\d{2,3})$/,
@@ -101,16 +127,20 @@ if (typeof Function.prototype.bind != 'function') {
 
         Tock.instances = (Tock.instances || 0) + 1;
 
+        this.id = options.id || '00000000-0000-0000-0000-000000000000';
         this.go = false;
         this.timeout = null;
         this.missed_ticks = null;
         this.interval = options.interval || 10;
         this.countdown = options.countdown || false;
         this.start_time = 0;
+        this.started = options.started || 0;
         this.pause_time = 0;
         this.final_time = 0;
         this.duration_ms = 0;
         this.time = 0;
+        this.state = 0;
+        this.stateChanged = options.stateChanged || function() {};
         this.callback = options.callback || function () { };
         this.complete = options.complete || function () { };
     };
@@ -122,7 +152,7 @@ if (typeof Function.prototype.bind != 'function') {
         if (this.countdown) {
             return false;
         }
-        this.stop();
+        _stopTimer.call(this);
         this.start_time = 0;
         this.time = 0;
     };
@@ -137,14 +167,15 @@ if (typeof Function.prototype.bind != 'function') {
      ** milliseconds
      */
     Tock.prototype.start = function (time) {
-        time = time ? this.timeToMS(time) : 0;
-
-        this.start_time = time;
+        //time = time ? this.timeToMS(time) : 0;
+        this.started = this.started == 0 ? Date.now() : this.started;
+        _changeState.call(this,1);
+        this.start_time = this.time;
 
         if (this.countdown) {
             _startCountdown.call(this, time);
         } else {
-            _startTimer.call(this, Date.now() - time);
+            _startTimer.call(this, Date.now() - this.time);
         }
     };
 
@@ -152,25 +183,20 @@ if (typeof Function.prototype.bind != 'function') {
      * Stop the clock.
      */
     Tock.prototype.stop = function () {
-        this.pause_time = this.lap();
-        this.go = false;
-
-        window.clearTimeout(this.timeout);
-
-        if (this.countdown) {
-            this.final_time = this.duration_ms - this.time;
-        } else {
-            this.final_time = (Date.now() - this.start_time);
-        }
+        _stopTimer.call(this);
+        _changeState.call(this,3);
     };
 
     /**
      * Stop/start the clock.
      */
     Tock.prototype.pause = function () {
+     
         if (this.go) {
             this.pause_time = this.lap();
+            _stopTimer.call(this);
             this.stop();
+            _changeState.call(this,2);
         }
         else {
             if (this.pause_time) {
@@ -178,6 +204,7 @@ if (typeof Function.prototype.bind != 'function') {
                     _startCountdown.call(this, this.pause_time);
                 } else {
                     _startTimer.call(this, Date.now() - this.pause_time);
+                    _changeState.call(this,1);
                 }
             }
         }
@@ -202,10 +229,40 @@ if (typeof Function.prototype.bind != 'function') {
 
         return this.pause_time || this.final_time;
     };
+    Tock.prototype.modify = function (ms) {
+        var s = this.state;
+        this.reset();
+        this.pause_time = 0;
+        this.start_time = Date.now()-ms;
+        this.time = ms;
+        this.started = Date.now() - ms;
+        if (s == 1 || s == 2) 
+            this.start(ms);
+        
 
+    }
     /**
      * Format milliseconds as a MM:SS.ms string.
      */
+    Tock.prototype.data = function() {
+        return{
+            Started: this.start_time,
+            Time: this.lap(),
+            State: this.state,
+            Id:this.id
+        };
+    }
+    Tock.prototype.load = function (data) {
+            this.reset();
+            //if (this.go)
+            //    _stopTimer.call(this);
+            this.started = data.Started;
+            this.state = data.State;
+            this.time = data.Time;
+            this.id = data.Id;
+            if (this.state == 1)
+                this.start(this.time);
+        },
     Tock.prototype.msToTime = function (ms) {
         if (ms <= 0) {
             return '00:00.000';

@@ -10,33 +10,34 @@ using Squares.ViewModels;
 
 namespace Squares.ApiControllers
 {
-    public class ReportController : ApiController
+    public class StopWatchController : ApiController
     {
         private SquareService _service = new SquareService(new SquaresEntities());
-        // GET: api/Report
-        public ReportViewModel Get()
+        // GET: api/Timer
+        public IEnumerable<string> Get()
         {
-            return _service.GetReportViewModelByUserId(User.Identity.GetUserId());
+            return new string[] { "value1", "value2" };
         }
 
-        // GET: api/Report/5
+        // GET: api/Timer/5
         public string Get(int id)
         {
             return "value";
         }
 
-        // POST: api/Report
-        public void Post(ReportItemViewModel model)
+        // POST: api/Timer
+        public StopWatchModel Post(StopWatchModel model)
         {
-            _service.SaveReportItem(model);
+           _service.SaveStopWatch(User.Identity.GetUserId(), model);
+           return model;
         }
 
-        // PUT: api/Report/5
+        // PUT: api/Timer/5
         public void Put(int id, [FromBody]string value)
         {
         }
 
-        // DELETE: api/Report/5
+        // DELETE: api/Timer/5
         public void Delete(int id)
         {
         }

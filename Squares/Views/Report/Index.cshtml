@@ -1,260 +1,103 @@
 ﻿@model Squares.ViewModels.ReportViewModel
 <style>
-    .panel-group .panel{overflow:visible}
+    .panel-group .panel {
+        overflow: visible;
+    }
 </style>
-<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
-    <div class="panel panel-default">
+<div class="" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
+    <div class="panel panel-default" data-bind="visible:visible">
         <div class="panel-heading" role="tab">
             <h4 class="panel-title">
                 <a data-toggle="collapse" data-bind="text:name,attr:{'aria-controls':'collapse-'+$data.id(),href:'#collapse-'+$data.id()}" data-parent="#accordion" aria-expanded="true">
                 </a>
-                <span class=" glyphicon glyphicon-remove pull-right" aria-hidden="true" data-bind="click:onDeleteItemClick"></span>
-                <span class="glyphicon glyphicon-floppy-save col-sm-1 pull-right" aria-hidden="true" data-bind="click:onSaveItemClick"></span>
-                <span data-bind="text:totalDurationDisplay" class="col-sm-3 pull-right"></span>
+                <span class=" glyphicon glyphicon-remove pull-right" aria-hidden="true" data-bind="click:onDeleteItemClick,visible:canSave"></span>
+                <span class="glyphicon glyphicon-floppy-save col-sm-1 pull-right" aria-hidden="true" data-bind="click:onSaveItemClick,visible:canSave"></span>
+                <span class="col-sm-3 pull-right"><small data-bind="text:totalDurationDisplay"></small></span>
             </h4>
         </div>
-        <div  class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne" data-bind="attr:{id:'collapse-'+$data.id()}">
+        <div class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne" data-bind="attr:{id:'collapse-'+$data.id()}">
             <div class="panel-body">
                 <div class="row" data-bind="foreach:activityRecords">
-                    <div class="col-sm-6">
-                        <label>Start Date</label>
-                        <div class='input-group date' data-bind="attr:{'data-default':startDate().toISOString()}">
-                            <input type="text" class="form-control" />
-                            <span class="input-group-addon">
-                                <span class="glyphicon glyphicon-calendar"></span>
-                            </span>
+                    <div class="row" data-bind="visible:visible">
+                        <div class="col-sm-6">
+                            <label>Start Date</label>
+                            <div class='input-group date'>
+                                <input type="text" class="form-control" data-display="startDate" data-bind="attr:{'data-default':startDate().toISOString()}" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <span class="badge" data-bind="text:activityState"></span>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="col-sm-3">
+                                <label>Days</label>
+                                <input type="text" class="form-control" data-bind="value:duration.days" />
+                            </div>
+                            <div class="col-sm-3">
+                                <label>Hours</label>
+                                <input type="text" class="form-control" data-bind="value:duration.hours" />
+                            </div>
+                            <div class="col-sm-3">
+                                <label>Minutes</label>
+                                <input type="text" class="form-control" data-bind="value:duration.minutes" />
+                            </div>
+                            <div class="col-sm-3">
+                                <label>Seconds</label>
+                                <input type="text" class="form-control" data-bind="value:duration.seconds" />
+                            </div>
                         </div>
                     </div>
-                    <div class="col-sm-2">
-                        <span class="badge" data-bind="text:activityState"></span>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="col-sm-3">
-                            <label>Days</label>
-                            <input type="text" class="form-control" data-bind="value:days" />
-                        </div>
-                        <div class="col-sm-3">
-                            <label>Hours</label>
-                            <input type="text" class="form-control" data-bind="value:hours" />
-                        </div>
-                        <div class="col-sm-3">
-                            <label>Minutes</label>
-                            <input type="text" class="form-control" data-bind="value:minutes" />
-                        </div>
-                        <div class="col-sm-3">
-                            <label>Seconds</label>
-                            <input type="text" class="form-control" data-bind="value:seconds" />
-                        </div>
-                    </div>
-                
+                    <div class="row" data-bind="visible:visible">
                         <div class="col-sm-12">
                             <a href="javascript:void(0)" data-bind="click:onDeleteActivityItemClick">Remove</a>
-                            
+
                         </div>
-              
+                    </div>
+
+
                 </div>
-      
+
             </div>
         </div>
     </div>
 
 </div>
 
-    @section scripts{
-        <script>
-            function deleteItem(e) {
-               $.post(rootPath+'Report/DeleteItem',{id:e.args.id()},function(r, s) {
-                   var target = null;
-                   for (var i = 0; i < viewModel.reportItems().length; i++) {
-                       if (viewModel.reportItems()[i].id() == e.args.id())
-                           target = viewModel.reportItems()[i];
-                   }
-                   viewModel.reportItems.remove(target);
-               });
-             
-            }
-            function deleteActivityItem(e) {
-                var data = e.args.toData();
-                $.post(rootPath + 'Report/DeleteActivityItem', { id: e.args.id() }, function(r, s) {
-                    var parent = null;
-                    for (var i = 0; i < viewModel.reportItems().length; i++) {
-                        if (viewModel.reportItems()[i].id() == e.args.parentId())
-                            parent = viewModel.reportItems()[i];
-                    }
-                    for (var j = 0; j < parent.activityRecords().length; j++) {
-                        if (parent.activityRecords()[j].id() == e.args.id()) {
-                            console.log(parent.activityRecords.remove(parent.activityRecords()[j]));
-                        }
-                    }
-                });
-            }
 
-
+@section scripts{
+        <script src="~/Scripts/app/common.js"></script>
+        <script src="~/Scripts/app/reporting.js"></script>
        
-            function saveItem(e) {
-                var data = e.args.toData();
-                $.post(rootPath + 'api/Report', data, function(r, s) {
-                    console.log(s);
-                });
+        <script>
+            var viewModel;
+            $(function () {
+                
 
-            }
-            function ActivityRecord(options) {
-                var settings = options || {}
-                var result = {
-                    id: ko.observable(settings.Id),
-                    parentId:ko.observable(settings.UserSquareId),
-                    activityState: ko.observable(settings.ActivityState),
-                    startDate: ko.observable(new Date(settings.StartDate)),
-                    duration: settings.Duration,
-                    durationDisplay: ko.observable(null),
-                    days: ko.observable(settings.Duration.Days),
-                    hours: ko.observable(settings.Duration.Hours),
-                    minutes: ko.observable(settings.Duration.Minutes),
-                    seconds: ko.observable(settings.Duration.Seconds),
-                    isDeleted:ko.observable(false),
-                    onDateChanged: function(e) {
-                        console.log(e);
-                    },
-                    onDeleteActivityItemClick:function(e) {
-                        $.event.trigger({ type: 'deleteActivityItemClicked', args: result, time: new Date() });
-                    },
-                    init: function() {
-
-                    },
-                    toData:function() {
-                        return{
-                            Id: result.id(),
-                            StartDate: result.startDate().toISOString(),
-                            ActivityState: result.activityState(),
-                            Duration: { days: result.days(), hours: result.hours(), minutes: result.minutes(), seconds: result.seconds() },
-                            IsDeleted: result.isDeleted(),
-                            UserSquareId:result.parentId()
+                function getReportItems() {
+                    $.get(rootPath + 'api/report', function (r) {
+                        var vm = { reportItems: [] };
+                        for (var i = 0; i < r.ReportItems.length; i++) {
+                            var ri = new ReportItem(r.ReportItems[i]);
+                            vm.reportItems.push(ri);
                         }
-                    }
+                        viewModel = ko.mapping.fromJS(vm);
+                        ko.applyBindings(viewModel);
+                        $('[data-display="startDate"]').each(function () {
+                            var dp = $(this).datetimepicker({ defaultDate: $(this).data('default') });
+                            $(this).on('dp.change', function (e) {
+                                var target = ko.dataFor(e.target);
+                                target.startDate(e.date._d);
 
-                };
-                result.init();
-                return result;
-            }
-
-            function ReportItem(options) {
-                var settings = options || {}
-                var result = {
-                    id: ko.observable(settings.Id),
-                    name: ko.observable(settings.Name),
-                    started: ko.observable(settings.MinDate),
-                    ended: ko.observable(settings.MaxDate),
-                    totalDuration: ko.observable(msToDisplay(settings.TotalDuration)),
-                    totalDurationDisplay: ko.observable(null),
-                    activityRecords: ko.observableArray(settings.activityRecords),
-                    setTotalDurationDisplay: function() {
-
-                        var r = lpad(result.totalDuration().days.toString(), 2, '0') + ' - Days ' + lpad(result.totalDuration().hours.toString(), 2, '0') + ':' + lpad(result.totalDuration().minutes.toString(), 2, '0') + ':' + lpad(Math.floor(result.totalDuration().seconds).toString(), 2, '0');
-                        result.totalDurationDisplay(r);
-                    },
-                    init: function() {
-                        result.setTotalDurationDisplay();
-                    },
-                    onSaveItemClick: function() {
-                        $.event.trigger({ type: 'saveItemClicked', args: result, time: new Date() });
-                    },
-                    onDeleteItemClick: function () {
-                        $.event.trigger({ type: 'deleteItemClicked', args: result, time: new Date() });
-                    },
-                    toData:function() {
-                        var data = {
-                            Id: result.id(),
-                            Name: result.name(),
-                            MinDate: result.started(),
-                            MaxDate: result.ended(),
-                            ActivityRecords:[]
-
-                        };
-                        for (var i = 0; i < result.activityRecords().length; i++) {
-                            data.ActivityRecords.push(result.activityRecords()[i].toData());
-                        }
-                        return data;
-                    }
-
-
-                };
-                result.init();
-                return result;
-            }
-
-            function lpad(originalstr, length, strToPad) {
-                while (originalstr.length < length)
-                    originalstr = strToPad + originalstr;
-                return originalstr;
-            }
-
-            function dateChanged(e, s) {
-
-                ko.dataFor(e.target).startDate(new Date(e.date._d));
-
-            }
-
-            function msToDisplay(ms) {
-
-                var delta = Math.abs(ms) / 1000;
-
-                // calculate (and subtract) whole days
-                var days = Math.floor(delta / 86400);
-                delta -= days * 86400;
-
-                // calculate (and subtract) whole hours
-                var hours = Math.floor(delta / 3600) % 24;
-                delta -= hours * 3600;
-
-                // calculate (and subtract) whole minutes
-                var minutes = Math.floor(delta / 60) % 60;
-                delta -= minutes * 60;
-
-                // what's left is seconds
-                var seconds = delta % 60;
-
-                var result = { days: days, hours: hours, minutes: minutes, seconds: seconds };
-
-                return result;
-            }
-
-            var vData;
-            var vm = null;
-            var viewModel = null;
-
-            function getReport() {
-
-                $.get(rootPath + 'api/Report', function(r, s) {
-                    vData = r;
-                    vm = { reportItems: [] };
-                    for (var i = 0; i < r.ReportItems.length; i++) {
-                        var item = r.ReportItems[i];
-                        item.activityRecords = [];
-
-                        for (var j = 0; j < item.ActivityRecords.length; j++) {
-                            var activityRecord = new ActivityRecord(item.ActivityRecords[j]);
-                            item.activityRecords.push(activityRecord);
-                        }
-                        var reportItem = new ReportItem(item);
-                        vm.reportItems.push(reportItem);
-                    }
-
-                    viewModel = ko.mapping.fromJS(vm);
-                    ko.applyBindings(viewModel);
-                    $('.date').each(function() {
-                        $(this).datetimepicker({
-                            defaultDate: $(this).data('default')
-                        }).on('dp.change', dateChanged);
+                            });
+                        });
                     });
-                });
-            }
 
-            $(function() {
-                getReport();
-                $(document).on('saveItemClicked', saveItem)
-                    .on('deleteActivityItemClicked', deleteActivityItem)
-                    .on('deleteItemClicked',deleteItem);
-
+                }
+                getReportItems();
             });
         </script>
+  
     }

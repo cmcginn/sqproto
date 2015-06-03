@@ -20,14 +20,11 @@ namespace Squares.Controllers
 
         public ActionResult DeleteActivityItem(Guid id)
         {
-            _service.DeleteUserSquareActivity(User.Identity.GetUserId(), id);
-            return null;
+            throw new System.NotImplementedException();
         }
 
-        public ActionResult DeleteItem(Guid id)
-        {
-            _service.DeleteUserSquare(User.Identity.GetUserId(), id);
-            return null;
+        public ActionResult DeleteItem(Guid id){
+            throw new System.NotImplementedException();
         }
     }
 }

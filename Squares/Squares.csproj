@@ -167,6 +167,9 @@
     <Compile Include="ApiControllers\ReportController.cs" />
     <Compile Include="ApiControllers\ScratchController.cs" />
     <Compile Include="ApiControllers\SquareController.cs" />
+    <Compile Include="ApiControllers\SyncController.cs" />
+    <Compile Include="ApiControllers\TimerActionController.cs" />
+    <Compile Include="ApiControllers\StopWatchController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
@@ -199,15 +202,18 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\SquareService.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="StopWatch.cs">
+      <DependentUpon>Domain.tt</DependentUpon>
+    </Compile>
     <Compile Include="UserSquare.cs">
       <DependentUpon>Domain.tt</DependentUpon>
     </Compile>
-    <Compile Include="UserSquareActivity.cs">
-      <DependentUpon>Domain.tt</DependentUpon>
-    </Compile>
+    <Compile Include="ViewModels\ActivityStateTypes.cs" />
     <Compile Include="ViewModels\Duration.cs" />
     <Compile Include="ViewModels\ReportItemViewModel.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
+    <Compile Include="ViewModels\TimerActionModel.cs" />
+    <Compile Include="ViewModels\StopWatchModel.cs" />
     <Compile Include="ViewModels\UserSquareActionModel.cs" />
     <Compile Include="ViewModels\UserSquaresViewModel.cs" />
     <Compile Include="ViewModels\UserSquareViewModel.cs" />
@@ -230,7 +236,9 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Scripts\app\common.js" />
     <Content Include="Scripts\app\model.js" />
+    <Content Include="Scripts\app\reporting.js" />
     <Content Include="Scripts\app\scratch.js" />
     <Content Include="Scripts\app\squares.js" />
     <Content Include="Scripts\bootstrap.js" />
@@ -256,6 +264,7 @@
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\app\square.js" />
     <Content Include="Scripts\vendor\bootstrap-datetimepicker.min.js" />
+    <Content Include="Scripts\vendor\tock.mod.js" />
     <Content Include="Scripts\vendor\tock.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
