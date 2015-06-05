@@ -235,8 +235,9 @@ if (typeof Function.prototype.bind != 'function') {
         this.pause_time = 0;
         this.start_time = Date.now()-ms;
         this.time = ms;
+        console.log(ms);
         this.started = Date.now() - ms;
-        if (s == 1 || s == 2) 
+        if (s == 1) 
             this.start(ms);
         
 
@@ -244,10 +245,11 @@ if (typeof Function.prototype.bind != 'function') {
     /**
      * Format milliseconds as a MM:SS.ms string.
      */
-    Tock.prototype.data = function() {
+    Tock.prototype.data = function () {
+
         return{
             Started: this.start_time,
-            Time: this.lap(),
+            Time: this.state==0?this.time:this.lap(),
             State: this.state,
             Id:this.id
         };
