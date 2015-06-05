@@ -72,6 +72,7 @@ function ReportItem(options) {
             minutes: ko.observable(duration.minutes),
             seconds: ko.observable(duration.seconds)
         },
+        editName:ko.observable(false),
         isDeleted: ko.observable(settings.isDeleted),
         id: ko.observable(settings.Id),
         name: ko.observable(settings.Name),
@@ -103,8 +104,12 @@ function ReportItem(options) {
                 $.cookie('refresh',true);
             });
         },
+        onEditNameClick:function() {
+            result.editName(true);
+        },
         onSaveItemClick: function () {
             var d = result.data();
+            result.editName(false);
             $.post(rootPath + 'api/Report', d, function(r) {
                 $.cookie('refresh', true);
             });

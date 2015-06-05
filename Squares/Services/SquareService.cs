@@ -188,14 +188,17 @@ namespace Squares.Services
         }
         public void SaveReportItem(ReportItemViewModel model)
         {
+            var target = _context.UserSquares.Single(x => x.Id == model.Id);
             if (model.IsDeleted)
             {
-                var target = _context.UserSquares.Single(x => x.Id == model.Id);
+                
                 _context.UserSquares.Remove(target);
                 _context.SaveChanges();
             }
             else
             {
+                if (model.Name != target.DisplayName & ! String.IsNullOrEmpty(model.Name))
+                    target.DisplayName = model.Name;
                 model.TotalDuration = 0;
                 model.ActivityRecords.ForEach(x =>
                 {

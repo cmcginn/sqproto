@@ -3,17 +3,41 @@
     .panel-group .panel {
         overflow: visible;
     }
+    [data-action="panelCollapse"] span.glyphicon:before{
+        content: "\e113"
+    }
+    .collapsed[data-action="panelCollapse"] span.glyphicon:before {
+          content: "\e114"
+    }
 </style>
 <div class="" id="accordion" role="tablist" aria-multiselectable="true" data-bind="foreach:reportItems">
     <div class="panel panel-default" data-bind="visible:visible">
         <div class="panel-heading" role="tab">
-            <h4 class="panel-title">
-                <a data-toggle="collapse" data-bind="text:name,attr:{'aria-controls':'collapse-'+$data.id(),href:'#collapse-'+$data.id()}" data-parent="#accordion" aria-expanded="true">
-                </a>
-                <span class=" glyphicon glyphicon-remove pull-right" aria-hidden="true" data-bind="click:onDeleteItemClick,visible:canSave"></span>
-                <span class="glyphicon glyphicon-floppy-save col-sm-1 pull-right" aria-hidden="true" data-bind="click:onSaveItemClick,visible:canSave"></span>
-                <span class="col-sm-4 pull-right"><small data-bind="text:totalDurationDisplay"></small></span>
-            </h4>
+            <div class="row">
+                <div class="col-sm-1">
+                    <a data-toggle="collapse" class="collapsed" data-action="panelCollapse" data-bind="attr:{'aria-controls':'collapse-'+$data.id(),href:'#collapse-'+$data.id()}" data-parent="#accordion" aria-expanded="true">
+                        <span class="glyphicon" aria-hidden="true"></span>
+                    </a>
+                </div>
+                <h4 class="panel-title col-sm-3" data-bind="visible:!editName()">
+                    <a href="javascript:void(0)" data-bind="text:name,click:onEditNameClick"></a>
+                </h4>
+                <div class="col-sm-3" data-bind="visible:editName">
+                    <input type="text" class="form-control" data-bind="value:name" />
+                </div>
+                <div class="col-sm-8">
+                    <span class=" glyphicon glyphicon-remove pull-right" aria-hidden="true" data-bind="click:onDeleteItemClick,visible:canSave"></span>
+                    <span class="glyphicon glyphicon-floppy-save col-sm-1 pull-right" aria-hidden="true" data-bind="click:onSaveItemClick,visible:canSave"></span>
+                    <span class="col-sm-4 pull-right"><small data-bind="text:totalDurationDisplay"></small></span>
+                </div>
+            </div>
+     
+
+
+     
+       
+
+           
         </div>
         <div class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne" data-bind="attr:{id:'collapse-'+$data.id()}">
             <div class="panel-body">
