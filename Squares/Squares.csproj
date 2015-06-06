@@ -212,6 +212,7 @@
     <Compile Include="ViewModels\Duration.cs" />
     <Compile Include="ViewModels\ReportItemViewModel.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
+    <Compile Include="ViewModels\ScracthViewModel.cs" />
     <Compile Include="ViewModels\TimerActionModel.cs" />
     <Compile Include="ViewModels\StopWatchModel.cs" />
     <Compile Include="ViewModels\UserSquareActionModel.cs" />

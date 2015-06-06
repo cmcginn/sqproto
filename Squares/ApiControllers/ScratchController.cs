@@ -19,7 +19,8 @@ namespace Squares.ApiControllers
         public List<UserSquare> Get()
         {
             var ctx = new SquaresEntities();
-            var model = ctx.UserSquares.Where(x => x.UserId == User.Identity.GetUserId()).ToList();
+            var userId = User.Identity.GetUserId();
+            var model = ctx.UserSquares.Where(x => x.UserId == userId).ToList();
             return model;
 
         }

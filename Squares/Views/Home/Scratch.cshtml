@@ -1,15 +1,110 @@
-﻿
+﻿<div class="row" data-bind="foreach:activityDays">
+    <div class="row">
+        <div class="col-sm-4">
+            <h4 data-bind="text:activityDate"></h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-2">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Started</th>
+                    <th>Days</th>
+                    <th>Hours</th>
+                    <th>Minutes</th>
+                    <th>Seconds</th>
+                </tr>
+       
+                </thead>
+                <tbody data-bind="foreach:activities">
+                    <tr>
+                        <td><span data-bind="text:startedDisplay"></span></td>
+                        <td><span data-bind="text:duration.days"></span></td>
+                        <td><span data-bind="text:duration.hours"></span></td>
+                        <td><span data-bind="text:duration.minutes"></span></td>
+                        <td><span data-bind="text:duration.seconds"></span></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5">
+                            <div class="text-right">
+                                <span data-bind="text:duration.days"></span>&nbsp;<span>Days</span>&nbsp;
+                                <span data-bind="text:duration.hours"></span>&nbsp;<span>Hours</span>&nbsp;
+                                <span data-bind="text:duration.minutes"></span>&nbsp;<span>Minutes</span>&nbsp;
+                                <span data-bind="text:duration.seconds"></span>&nbsp;<span>Seconds</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 @section scripts{
 
     <script src="~/Scripts/app/common.js"></script>
     <script>
         var data;
         var viewModel;
+        var model = { activities: [], activityDays: [] };
 
         function getData() {
             $.get(rootPath + 'api/Scratch', function(r) {
                 data = r;
+                buildModel();
+                buildViewModel();
             });
+        }
+
+        function buildModel() {
+
+            var items = [];
+            _.forEach(data, function(n, key) {
+
+                _.forEach(n.StopWatches, function(x, k) {
+                    if (x.State != 0) {
+                        x.activityStartDisplay = new Date(x.Started).toDateString();
+                        items.push(x);
+                    }
+                });
+
+            });
+
+            model.activities = _.sortBy(items, function(n) {
+                return n.Started;
+            });
+            var activityGroup = null;
+            var activityItems = [];
+            activityGroup = _.groupBy(items, function(n) {
+                return n.activityStartDisplay;
+            });
+            _.forEach(_.keys(activityGroup), function (n, k) {
+                //activityItems 
+                var ac = {
+                    activityDate: n,
+                    activities: activityGroup[n]
+                    
+                };
+
+                var ms = 0;
+                _.forEach(ac.activities, function(t, z) {
+                    ms += t.Elapsed;
+                    t.duration = common.getDuration(t.Elapsed);
+                    t.startedDisplay = new Date(t.Started).toLocaleDateString() + " : " + new Date(t.Started).toLocaleTimeString();
+                });
+                ac.duration = common.getDuration(ms);
+                activityItems.push(ac);
+            });
+            model.activityDays = activityItems;
+        };
+
+        function buildViewModel() {
+            viewModel = ko.mapping.fromJS(model);
+            ko.applyBindings(viewModel);
         }
 
         $(function() {
