@@ -3,59 +3,18 @@
 
     <script src="~/Scripts/app/common.js"></script>
     <script>
-        var data = {
-            reportItems: [
-                {
-                    Name: 'Square 1',
-                    Id: 'CF8B9C92-803E-4BAC-AFDF-E6182FE7F809',
-                    TotalDuration: 36002335,
-                    Started: 1433085209700,
-                    State: 2,
-                    ActivityRecords: [
-                        { Id: '6261DEA3-9628-4107-861F-020504C7678A', Elapsed: 36002335, Started: 1433085209700, Ended: 1433085209700 + 36002335 }
-                    ]
-                },
-                { Name: 'Square 2', Id: '8CC51702-D505-4781-B139-AA91C6A9DAF7', TotalDuration: 18302224, Started: 1433075066156, State: 2, ActivityRecords: [] },
-                { Name: 'Square 3', Id: '9776F775-EAAD-4B02-9394-58CB9FCE4920', TotalDuration: 3662175, Started: 1433089707377, State: 2, ActivityRecords: [] }
-            ]
-        }
+        var data;
         var viewModel;
 
-        function getReportItems() {
-            $.get(rootPath + 'api/report', function(r) {
-                var vm = { reportItems: [] };
-                for (var i = 0; i < r.ReportItems.length; i++) {
-                    var ri = new ReportItem(r.ReportItems[i]);
-                    vm.reportItems.push(ri);
-                }
-                viewModel = ko.mapping.fromJS(vm);
-                ko.applyBindings(viewModel);
-                $('[data-display="startDate"]').each(function() {
-                    var dp = $(this).datetimepicker({ defaultDate: $(this).data('default') });
-                    $(this).on('dp.change', function(e) {
-                        var target = ko.dataFor(e.target);
-                        target.startDate(e.date._d);
-
-                    });
-                });
+        function getData() {
+            $.get(rootPath + 'api/Scratch', function(r) {
+                data = r;
             });
-
         }
 
-        //function getReportItems() {
-        //    var vm = { reportItems: [] };
-        //    for (var i = 0; i < data.reportItems.length; i++) {
-        //        var ri = new ReportItem(data.reportItems[i]);
-        //        vm.reportItems.push(ri);
-        //    }
-        //    viewModel = ko.mapping.fromJS(vm);
-        //    ko.applyBindings(viewModel);
-        //}
-
-
-
         $(function() {
-            getReportItems();
+            getData();
         });
+
     </script>
 }

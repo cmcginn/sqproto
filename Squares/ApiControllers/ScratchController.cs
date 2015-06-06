@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using Microsoft.AspNet.Identity;
 
 namespace Squares.ApiControllers
 {
@@ -15,10 +16,12 @@ namespace Squares.ApiControllers
         }
 
         // GET: api/Scratch
-        public DemoModel Get()
+        public List<UserSquare> Get()
         {
-            var model = new DemoModel { StartDate = System.DateTime.Now.AddMinutes(-2) };
+            var ctx = new SquaresEntities();
+            var model = ctx.UserSquares.Where(x => x.UserId == User.Identity.GetUserId()).ToList();
             return model;
+
         }
 
         // GET: api/Scratch/5
