@@ -106,7 +106,6 @@
             result.duration.seconds(d.seconds);
         },
         save: function () {
-
             var d = result.timer.data();
             $.post(rootPath + 'api/stopwatch', d, function (r, s) { });
         },

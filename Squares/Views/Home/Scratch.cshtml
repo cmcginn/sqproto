@@ -1,4 +1,12 @@
-﻿<div class="row" data-bind="foreach:activityDays">
+﻿<style>
+    .progress-wrap {
+        background-color: #e0e0e0;
+    }
+     .progress {
+         background-color: #4cff00;
+     }
+</style>
+<div class="row" data-bind="foreach:activityDays">
     <div class="row">
         <div class="col-sm-4">
             <h4 data-bind="text:activityDate"></h4>
@@ -8,17 +16,19 @@
         <div class="col-sm-10 col-sm-offset-2">
             <table class="table">
                 <thead>
-                <tr>
-                    <th>Started</th>
-                    <th>Days</th>
-                    <th>Hours</th>
-                    <th>Minutes</th>
-                    <th>Seconds</th>
-                </tr>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Started</th>
+                        <th>Days</th>
+                        <th>Hours</th>
+                        <th>Minutes</th>
+                        <th>Seconds</th>
+                    </tr>
        
                 </thead>
                 <tbody data-bind="foreach:activities">
                     <tr>
+                        <td><span data-bind="text:name"></span></td>
                         <td><span data-bind="text:startedDisplay"></span></td>
                         <td><span data-bind="text:duration.days"></span></td>
                         <td><span data-bind="text:duration.hours"></span></td>
@@ -39,6 +49,14 @@
                     </tr>
                 </tfoot>
             </table>
+            <div class="row" data-bind="foreach:activities">
+                <div class="col-sm-12">
+                    <div style="width:100%">
+                        <div class="progress" data-bind="style:{ width:percentage }">&nbsp;<span data-bind="text:percentage"></span>&nbsp;<span data-bind="text:name"></span></div>
+                        
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -68,6 +86,7 @@
                 _.forEach(n.StopWatches, function(x, k) {
                     if (x.State != 0) {
                         x.activityStartDisplay = new Date(x.Started).toDateString();
+                        x.name = n.DisplayName;
                         items.push(x);
                     }
                 });
@@ -86,17 +105,25 @@
                 //activityItems 
                 var ac = {
                     activityDate: n,
-                    activities: activityGroup[n]
-                    
+                    activities: activityGroup[n],
+                    name:_.first(items,function(l, m) {
+                        return l.Id == activityGroup[n].Id;
+                    }).Id
                 };
 
                 var ms = 0;
+
                 _.forEach(ac.activities, function(t, z) {
                     ms += t.Elapsed;
                     t.duration = common.getDuration(t.Elapsed);
                     t.startedDisplay = new Date(t.Started).toLocaleDateString() + " : " + new Date(t.Started).toLocaleTimeString();
                 });
                 ac.duration = common.getDuration(ms);
+                var pctValue = ms / 100;
+                _.forEach(ac.activities, function(t, z) {
+                    t.percentage = (t.duration.milliseconds / pctValue).toString() + "%";
+                });
+
                 activityItems.push(ac);
             });
             model.activityDays = activityItems;

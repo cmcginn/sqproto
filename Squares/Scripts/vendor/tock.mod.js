@@ -249,7 +249,7 @@ if (typeof Function.prototype.bind != 'function') {
 
         return{
             Started: this.start_time,
-            Time: this.state==0?this.time:this.lap(),
+            Time: this.time,
             State: this.state,
             Id:this.id
         };
