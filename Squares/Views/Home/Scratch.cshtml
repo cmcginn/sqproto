@@ -101,12 +101,12 @@
             activityGroup = _.groupBy(items, function(n) {
                 return n.activityStartDisplay;
             });
-            _.forEach(_.keys(activityGroup), function (n, k) {
+            _.forEach(_.keys(activityGroup), function(n, k) {
                 //activityItems 
                 var ac = {
                     activityDate: n,
                     activities: activityGroup[n],
-                    name:_.first(items,function(l, m) {
+                    name: _.first(items, function(l, m) {
                         return l.Id == activityGroup[n].Id;
                     }).Id
                 };
@@ -121,10 +121,24 @@
                 ac.duration = common.getDuration(ms);
                 var pctValue = ms / 100;
                 _.forEach(ac.activities, function(t, z) {
-                    t.percentage = (t.duration.milliseconds / pctValue).toString() + "%";
+                    t.percentage = (t.duration.milliseconds / pctValue);
                 });
 
                 activityItems.push(ac);
+            });
+            _.forEach(activityItems, function(k, v) {
+                k.percentages = [];
+                var i = _.groupBy(k.activities, function(j, m) {
+                    return j.UserSquareId;
+                });
+                _.forEach(i, function (yt) {
+                    console.log(i);
+                    var ml = _.sum(yt, function(oi) {
+                        return oi.percentage;
+                    });
+                    k.percentages.push(ml);
+                });
+
             });
             model.activityDays = activityItems;
         };
