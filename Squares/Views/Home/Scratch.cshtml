@@ -1,4 +1,4 @@
-﻿<style>
+﻿@*<style>
     .progress-wrap {
         background-color: #e0e0e0;
     }
@@ -59,7 +59,7 @@
             </div>
         </div>
     </div>
-</div>
+</div>*@
 
 
 @section scripts{
@@ -67,80 +67,91 @@
     <script src="~/Scripts/app/common.js"></script>
     <script>
         var data;
+        var stopWatches = [];
+        var userSquares = [];
+        var dateModels = [];
         var viewModel;
         var model = { activities: [], activityDays: [] };
+
+        function iterateDateModels(dateModel) {
+            var totalDuration = _.sum(dateModel.stopWatches, function(d) {
+                return d.Elapsed;
+            });
+            var durationGroup = _.groupBy(dateModel.stopWatches, function(d) {
+                return d.UserSquareId;
+            });
+            var sums = [];
+            var durationGroupSums = _.forEach(_.keys(durationGroup), function(d) {
+                var item = {
+                    userSquareId: d,
+                    name:dateModel.name,
+                    duration: _.sum(durationGroup[d], function(el) {
+                        return (el.Elapsed/(totalDuration/100));
+                    })
+                };
+
+                sums.push(item);
+            });
+            dateModel.percentages = sums;
+            //get Total Duration
+            //var totalDuration = _.sum(stopWatches, function (stopWatch) {
+            //   // console.log(stopWatch);
+            //    return stopWatch.Elapsed;
+            //});
+             console.log(dateModel);
+        }
+
+        function createDateModels() {
+            var groups = _.groupBy(stopWatches, function(stopWatch) {
+                return stopWatch.dateDisplay;
+            });
+
+            _.forEach(_.keys(groups), function (keyedGroup) {
+            
+                var item = {
+                    key: keyedGroup,
+                    name: _.first(groups[keyedGroup]).name,
+                    stopWatches: groups[keyedGroup]
+                };
+            
+                iterateDateModels(item);
+                dateModels.push(item);
+            });
+
+        }
+
+        function iterateStopWatches(us) {
+            _.forEach(us.StopWatches, function(stopWatch) {
+                if (stopWatch.State > 0) {
+                    stopWatch.dateDisplay = new Date(stopWatch.Started).toDateString();
+                    stopWatch.name = us.DisplayName;
+                    stopWatches.push(stopWatch);
+                }
+            });
+        }
+
+        function iterateUserSquares() {
+            _.forEach(data, function(userSquare) {
+                userSquares.push(userSquare);
+                iterateStopWatches(userSquare);
+                createDateModels();
+         
+            });
+        }
 
         function getData() {
             $.get(rootPath + 'api/Scratch', function(r) {
                 data = r;
                 buildModel();
-                buildViewModel();
+                console.log(data);
+                //buildViewModel();
             });
         }
 
         function buildModel() {
 
-            var items = [];
-            _.forEach(data, function(n, key) {
+            iterateUserSquares();
 
-                _.forEach(n.StopWatches, function(x, k) {
-                    if (x.State != 0) {
-                        x.activityStartDisplay = new Date(x.Started).toDateString();
-                        x.name = n.DisplayName;
-                        items.push(x);
-                    }
-                });
-
-            });
-
-            model.activities = _.sortBy(items, function(n) {
-                return n.Started;
-            });
-            var activityGroup = null;
-            var activityItems = [];
-            activityGroup = _.groupBy(items, function(n) {
-                return n.activityStartDisplay;
-            });
-            _.forEach(_.keys(activityGroup), function(n, k) {
-                //activityItems 
-                var ac = {
-                    activityDate: n,
-                    activities: activityGroup[n],
-                    name: _.first(items, function(l, m) {
-                        return l.Id == activityGroup[n].Id;
-                    }).Id
-                };
-
-                var ms = 0;
-
-                _.forEach(ac.activities, function(t, z) {
-                    ms += t.Elapsed;
-                    t.duration = common.getDuration(t.Elapsed);
-                    t.startedDisplay = new Date(t.Started).toLocaleDateString() + " : " + new Date(t.Started).toLocaleTimeString();
-                });
-                ac.duration = common.getDuration(ms);
-                var pctValue = ms / 100;
-                _.forEach(ac.activities, function(t, z) {
-                    t.percentage = (t.duration.milliseconds / pctValue);
-                });
-
-                activityItems.push(ac);
-            });
-            _.forEach(activityItems, function(k, v) {
-                k.percentages = [];
-                var i = _.groupBy(k.activities, function(j, m) {
-                    return j.UserSquareId;
-                });
-                _.forEach(i, function (yt) {
-                    console.log(i);
-                    var ml = _.sum(yt, function(oi) {
-                        return oi.percentage;
-                    });
-                    k.percentages.push(ml);
-                });
-
-            });
-            model.activityDays = activityItems;
         };
 
         function buildViewModel() {
